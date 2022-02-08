@@ -1,18 +1,20 @@
 [![Version](https://img.shields.io/github/v/release/ManuelReschke/go-pd)](https://github.com/ManuelReschke/go-pd/releases)
 
-# go-pd - another pixeldrain.com client [![stability][0]][1]
+# go-pd - another pixeldrain.com client
+
 A free pixeldrain.com client written in go. We use the super power from [imroc/req](https://github.com/imroc/req) (v0.3.2) to build a robust and fast pixeldrain client.
 
 ## Why?
+
 Because we want a simple, fast and robust upload to pixeldrain.com.
 
-
 ## ToDo:
-* [x] implement simple upload method (POST /file)
-* [x] write integration test for the upload method
-* [ ] implement all other API methods
-* [ ] write tests for all other stuff
-* [ ] create CLI tool for uploading to pixeldrain.com
+
+- [x] implement simple upload method (POST /file)
+- [x] write integration test for the upload method
+- [ ] implement all other API methods
+- [ ] write tests for all other stuff
+- [ ] create CLI tool for uploading to pixeldrain.com
 
 ## Import
 
@@ -61,6 +63,7 @@ func main() {
     // URL = https://pixeldrain.com/u/xFNz76Vp
 }
 ```
+
 ## License
 
 This software is released under the MIT License, see LICENSE.
