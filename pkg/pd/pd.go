@@ -3,6 +3,7 @@ package pd
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -67,7 +68,7 @@ func New(opt *ClientOptions, c *Client) *PixelDrainClient {
 }
 
 // PUT /api/file/{name}
-func (pd *PixelDrainClient) Upload(r *RequestUpload) (*ResponseUpload, error) {
+func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error) {
 	if r.PathToFile == "" {
 		return nil, errors.New(ErrMissingPathToFile)
 	}
@@ -83,11 +84,42 @@ func (pd *PixelDrainClient) Upload(r *RequestUpload) (*ResponseUpload, error) {
 		File:      file,
 	}
 
-	// PUT - this does not work at the moment
-	//APIEndpoint := fmt.Sprintf(APIURL + "/file/%s", r.GetFileName())
-	// POST
 	APIEndpoint := fmt.Sprint(APIURL + "/file")
 	rsp, err := pd.Client.Request.Post(APIEndpoint, pd.Client.Header, reqFileUpload)
+	if pd.Debug {
+		log.Println(rsp.Dump())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	uploadRsp := &ResponseUpload{}
+	uploadRsp.StatusCode = rsp.Response().StatusCode
+	rsp.ToJSON(uploadRsp)
+
+	return uploadRsp, nil
+}
+
+func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error) {
+	if r.PathToFile == "" {
+		return nil, errors.New(ErrMissingPathToFile)
+	}
+
+	file, err := os.Open(r.PathToFile)
+	if err != nil {
+		return nil, err
+	}
+
+	reqParams := req.Param{
+		"name":      r.GetFileName(),
+		"anonymous": r.Anonymous,
+	}
+
+	APIEndpoint := fmt.Sprintf(APIURL+"/file/%s", r.GetFileName())
+	rsp, err := pd.Client.Request.Put(APIEndpoint, pd.Client.Header, file, reqParams)
+	if pd.Debug {
+		log.Println(rsp.Dump())
+	}
 	if err != nil {
 		return nil, err
 	}

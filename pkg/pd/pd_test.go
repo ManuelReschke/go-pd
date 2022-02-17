@@ -10,10 +10,11 @@ import (
 	"github.com/ManuelReschke/go-pd/pkg/pd"
 )
 
-func Test_Upload(t *testing.T) {
+func TestPD_UploadPOST(t *testing.T) {
 	req := &pd.RequestUpload{
 		PathToFile: "testdata/cat.jpg",
 		Anonymous:  true,
+		FileName:   "test_post_cat.jpg",
 	}
 
 	opt := &pd.ClientOptions{
@@ -23,12 +24,36 @@ func Test_Upload(t *testing.T) {
 	}
 
 	c := pd.New(opt, nil)
-	rsp, err := c.Upload(req)
+	rsp, err := c.UploadPOST(req)
 	if err != nil {
 		t.Error(err)
 	}
 
 	assert.Equal(t, 201, rsp.StatusCode)
 	assert.NotEmpty(t, rsp.ID)
-	fmt.Println(rsp.ID)
+	fmt.Println("POST Req: " + rsp.GetFileURL())
+}
+
+func TestPD_UploadPUT(t *testing.T) {
+	req := &pd.RequestUpload{
+		PathToFile: "testdata/cat.jpg",
+		Anonymous:  true,
+		FileName:   "test_put_cat.jpg",
+	}
+
+	opt := &pd.ClientOptions{
+		Debug:             false,
+		Timeout:           5 * time.Second,
+		EnableInsecureTLS: true,
+	}
+
+	c := pd.New(opt, nil)
+	rsp, err := c.UploadPUT(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 201, rsp.StatusCode)
+	assert.NotEmpty(t, rsp.ID)
+	fmt.Println("PUT Req: " + rsp.GetFileURL())
 }
