@@ -12,14 +12,6 @@ A free pixeldrain.com client written in go. We use the super power from [imroc/r
 
 Because we want a simple, fast and robust go package to upload to pixeldrain.com.
 
-## ToDo:
-
-- [x] implement simple upload method over POST /file
-- [x] implement simple upload over PUT /file/{filename}
-- [x] write integration test for the upload method
-- [ ] implement all other API methods
-- [ ] create CLI tool for uploading to pixeldrain.com
-
 ## Import
 
 ```go
@@ -63,6 +55,35 @@ func main() {
     // URL = https://pixeldrain.com/u/xFNz76Vp
 }
 ```
+## ToDo's:
+
+- [x] implement simple upload method over POST /file
+- [x] implement simple upload over PUT /file/{filename}
+- [x] write integration test for the upload method
+- [ ] implement all other API methods
+- [ ] create CLI tool for uploading to pixeldrain.com
+
+## PixelDrain methods covered by this package
+
+### File Methods
+| Status  |  PixelDrain Call |  Package Func |
+|---|---|---|
+|  [<span style="color:green">DONE</span>] | POST - /file  | UploadPOST(r *RequestUpload) (*ResponseUpload, error)  |
+|  [<span style="color:green">DONE</span>] | PUT - /file/{name}  |  UploadPUT(r *RequestUpload) (*ResponseUpload, error) |
+|  [<span style="color:red">ToDo</span>] | GET - /file/{id}  | -  |
+|  [<span style="color:red">ToDo</span>] | GET - /file/{id}/info |  - |
+|  [<span style="color:red">ToDo</span>] | GET - /file/{id}/thumbnail?width=x&height=x | -  |
+|  [<span style="color:red">ToDo</span>] | DELETE - /file/{id}  | -  |
+### List Methods
+| Status  |  PixelDrain Call |  Package Func |
+|---|---|---|
+|  [<span style="color:red">ToDo</span>] | POST - /list | -  |
+|  [<span style="color:red">ToDo</span>] | GET - /list/{id} | -  |
+### User Methods
+| Status  |  PixelDrain Call |  Package Func |
+|---|---|---|
+|  [<span style="color:red">ToDo</span>] | POST - /user/files | -  |
+|  [<span style="color:red">ToDo</span>] | GET - /user/lists | -  |
 
 ## License
 
