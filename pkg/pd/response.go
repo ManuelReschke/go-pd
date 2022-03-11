@@ -13,5 +13,5 @@ type ResponseUpload struct {
 }
 
 func (rsp *ResponseUpload) GetFileURL() string {
-	return fmt.Sprintf("%s/u/%s", BaseURL, rsp.ID)
+	return fmt.Sprintf("%su/%s", BaseURL, rsp.ID)
 }

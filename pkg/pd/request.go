@@ -6,6 +6,7 @@ type RequestUpload struct {
 	PathToFile string
 	Anonymous  bool
 	FileName   string
+	URL        string
 }
 
 func (r *RequestUpload) GetFileName() string {

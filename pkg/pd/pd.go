@@ -73,6 +73,10 @@ func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error
 		return nil, errors.New(ErrMissingPathToFile)
 	}
 
+	if r.URL == "" {
+		r.URL = fmt.Sprint(APIURL + "/file")
+	}
+
 	file, err := os.Open(r.PathToFile)
 	if err != nil {
 		return nil, err
@@ -84,8 +88,7 @@ func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error
 		File:      file,
 	}
 
-	APIEndpoint := fmt.Sprint(APIURL + "/file")
-	rsp, err := pd.Client.Request.Post(APIEndpoint, pd.Client.Header, reqFileUpload)
+	rsp, err := pd.Client.Request.Post(r.URL, pd.Client.Header, reqFileUpload)
 	if pd.Debug {
 		log.Println(rsp.Dump())
 	}
@@ -95,7 +98,10 @@ func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error
 
 	uploadRsp := &ResponseUpload{}
 	uploadRsp.StatusCode = rsp.Response().StatusCode
-	rsp.ToJSON(uploadRsp)
+	err = rsp.ToJSON(uploadRsp)
+	if err != nil {
+		return nil, err
+	}
 
 	return uploadRsp, nil
 }
@@ -104,6 +110,10 @@ func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error
 func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error) {
 	if r.PathToFile == "" {
 		return nil, errors.New(ErrMissingPathToFile)
+	}
+
+	if r.URL == "" {
+		r.URL = fmt.Sprintf(APIURL+"/file/%s", r.GetFileName())
 	}
 
 	file, err := os.Open(r.PathToFile)
@@ -116,8 +126,7 @@ func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error)
 		"anonymous": r.Anonymous,
 	}
 
-	APIEndpoint := fmt.Sprintf(APIURL+"/file/%s", r.GetFileName())
-	rsp, err := pd.Client.Request.Put(APIEndpoint, pd.Client.Header, file, reqParams)
+	rsp, err := pd.Client.Request.Put(r.URL, pd.Client.Header, file, reqParams)
 	if pd.Debug {
 		log.Println(rsp.Dump())
 	}
@@ -127,7 +136,10 @@ func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error)
 
 	uploadRsp := &ResponseUpload{}
 	uploadRsp.StatusCode = rsp.Response().StatusCode
-	rsp.ToJSON(uploadRsp)
+	err = rsp.ToJSON(uploadRsp)
+	if err != nil {
+		return nil, err
+	}
 
 	return uploadRsp, nil
 }
