@@ -67,7 +67,7 @@ func New(opt *ClientOptions, c *Client) *PixelDrainClient {
 	return pdc
 }
 
-// POST /api/file
+// UploadPOST POST /api/file
 func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error) {
 	if r.PathToFile == "" {
 		return nil, errors.New(ErrMissingPathToFile)
@@ -106,7 +106,7 @@ func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error
 	return uploadRsp, nil
 }
 
-// PUT /api/file/{name}
+// UploadPUT PUT /api/file/{name}
 func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error) {
 	if r.PathToFile == "" {
 		return nil, errors.New(ErrMissingPathToFile)
@@ -144,7 +144,7 @@ func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error)
 	return uploadRsp, nil
 }
 
-// GET /api/file/{id}
+// GetFile GET /api/file/{id}
 func (pd *PixelDrainClient) GetFile() (*ResponseUpload, error) {
 	// todo
 	return nil, nil

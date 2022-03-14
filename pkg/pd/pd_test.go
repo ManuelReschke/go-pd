@@ -23,7 +23,6 @@ func TestPD_UploadPOST(t *testing.T) {
 	}
 
 	opt := &pd.ClientOptions{
-		Debug:             false,
 		Timeout:           5 * time.Second,
 		EnableInsecureTLS: true,
 	}
@@ -41,14 +40,18 @@ func TestPD_UploadPOST(t *testing.T) {
 }
 
 func TestPD_UploadPUT(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/file/"
+
 	req := &pd.RequestUpload{
 		PathToFile: "testdata/cat.jpg",
 		Anonymous:  true,
 		FileName:   "test_put_cat.jpg",
+		URL:        testURL + "test_put_cat.jpg",
 	}
 
 	opt := &pd.ClientOptions{
-		Debug:             false,
 		Timeout:           5 * time.Second,
 		EnableInsecureTLS: true,
 	}
@@ -61,5 +64,6 @@ func TestPD_UploadPUT(t *testing.T) {
 
 	assert.Equal(t, 201, rsp.StatusCode)
 	assert.NotEmpty(t, rsp.ID)
+	assert.Equal(t, "https://pixeldrain.com/u/123456", rsp.GetFileURL())
 	fmt.Println("PUT Req: " + rsp.GetFileURL())
 }
