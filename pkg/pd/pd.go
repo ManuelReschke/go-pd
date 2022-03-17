@@ -19,17 +19,6 @@ const (
 	ErrMissingPathToFile = "file path is required"
 )
 
-type PixelDrainClient struct {
-	Client *Client
-	Debug  bool
-}
-
-type Client struct {
-	Header   req.Header
-	Request  *req.Req
-	ProxyURL string
-}
-
 type ClientOptions struct {
 	Debug             bool
 	ProxyURL          string
@@ -38,25 +27,45 @@ type ClientOptions struct {
 	Timeout           time.Duration
 }
 
+type Client struct {
+	Header  req.Header
+	Request *req.Req
+}
+
+type PixelDrainClient struct {
+	Client *Client
+	Debug  bool
+}
+
+// New - create a new PixelDrainClient
 func New(opt *ClientOptions, c *Client) *PixelDrainClient {
+	// set default values if no other options available
+	if opt == nil {
+		opt = &ClientOptions{
+			Debug:             false,
+			ProxyURL:          "",
+			EnableCookies:     true,
+			EnableInsecureTLS: true,
+			Timeout:           1 * time.Hour,
+		}
+	}
+
+	// build default client if not available
 	if c == nil {
-		header := req.Header{
-			"User-Agent": DefaultUserAgent,
-		}
-
-		request := req.New()
-		request.EnableCookie(opt.EnableCookies)
-		request.EnableInsecureTLS(opt.EnableInsecureTLS)
-		request.SetTimeout(opt.Timeout)
-		if opt.ProxyURL != "" {
-			_ = request.SetProxyUrl(opt.ProxyURL)
-		}
-
 		c = &Client{
-			Header:   header,
-			Request:  request,
-			ProxyURL: opt.ProxyURL,
+			Header: req.Header{
+				"User-Agent": DefaultUserAgent,
+			},
+			Request: req.New(),
 		}
+	}
+
+	// set the request options
+	c.Request.EnableCookie(opt.EnableCookies)
+	c.Request.EnableInsecureTLS(opt.EnableInsecureTLS)
+	c.Request.SetTimeout(opt.Timeout)
+	if opt.ProxyURL != "" {
+		_ = c.Request.SetProxyUrl(opt.ProxyURL)
 	}
 
 	pdc := &PixelDrainClient{
@@ -88,7 +97,11 @@ func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error
 		File:      file,
 	}
 
-	rsp, err := pd.Client.Request.Post(r.URL, pd.Client.Header, reqFileUpload)
+	reqParams := req.Param{
+		"anonymous": r.Anonymous,
+	}
+
+	rsp, err := pd.Client.Request.Post(r.URL, pd.Client.Header, reqFileUpload, reqParams)
 	if pd.Debug {
 		log.Println(rsp.Dump())
 	}
@@ -122,7 +135,6 @@ func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error)
 	}
 
 	reqParams := req.Param{
-		"name":      r.GetFileName(),
 		"anonymous": r.Anonymous,
 	}
 

@@ -10,15 +10,15 @@ A free pixeldrain.com client written in go. We use the super power from [imroc/r
 
 ## Why?
 
-Because we want a simple, fast and robust go package to upload to pixeldrain.com.
+Because we want a simple, fast, robust and 100% tested go package to upload to pixeldrain.com.
 
-## Import
+## Import the pkg / lib
 
 ```go
 import "github.com/ManuelReschke/go-pd/pkg/pd"
 ```
 
-## Example - use package to upload a file
+## Example 1 - the easiest way to upload a file
 
 ```go
 package main
@@ -34,32 +34,70 @@ func main() {
 	req := &pd.RequestUpload{
 		PathToFile: "testdata/cat.jpg",
 		Anonymous:  true,
-		FileName:   "test_post_cat.jpg",
 	}
 
+	c := pd.New(nil, nil)
+	rsp, err := c.UploadPOST(req)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// print the full URL
+	fmt.Println(rsp.GetFileURL())
+
+        // example ID = xFNz76Vp
+        // example URL = https://pixeldrain.com/u/xFNz76Vp
+}
+```
+
+## Example 2 - advanced way to upload a file
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/ManuelReschke/go-pd/pkg/pd"
+)
+
+func main() {
+	req := &pd.RequestUpload{
+		PathToFile: "testdata/cat.jpg",
+		FileName:   "test_post_cat.jpg",
+		Anonymous:  true,
+	}
+
+	// set specific request options
 	opt := &pd.ClientOptions{
 		Debug:             false,
-		Timeout:           5 * time.Second,
+		ProxyURL:          "example.socks5.proxy",
+		EnableCookies:     true,
 		EnableInsecureTLS: true,
+		Timeout:           1 * time.Hour,
 	}
 
 	c := pd.New(opt, nil)
 	rsp, err := c.UploadPOST(req)
 	if err != nil {
-		t.Error(err)
+		fmt.Println(err)
 	}
 
+	// print the full URL
 	fmt.Println(rsp.GetFileURL())
 
-    // ID = xFNz76Vp
-    // URL = https://pixeldrain.com/u/xFNz76Vp
+        // example ID = xFNz76Vp
+        // example URL = https://pixeldrain.com/u/xFNz76Vp
 }
 ```
 ## ToDo's:
 
 - [x] implement simple upload method over POST /file
 - [x] implement simple upload over PUT /file/{filename}
-- [x] write integration test for the upload method
+- [x] write unit tests
+- [x] write integration tests
+- [ ] add API-KEY auth to requests
 - [ ] implement all other API methods
 - [ ] create CLI tool for uploading to pixeldrain.com
 

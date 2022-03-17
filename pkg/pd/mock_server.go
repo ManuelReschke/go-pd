@@ -23,6 +23,10 @@ func MockFileUploadServer() *httptest.Server {
 				log.Fatalln("Except request to have 'file'")
 			}
 
+			if r.FormValue("anonymous") == "" {
+				log.Fatalln("Except request to have form value 'anonymous'")
+			}
+
 			w.WriteHeader(http.StatusCreated)
 			str := `{
 				"success": true,
@@ -43,10 +47,6 @@ func MockFileUploadServer() *httptest.Server {
 
 			if r.FormValue("anonymous") == "" {
 				log.Fatalln("Except request to have form value 'anonymous'")
-			}
-
-			if r.FormValue("name") == "" {
-				log.Fatalln("Except request to have form value 'name'")
 			}
 
 			w.WriteHeader(http.StatusCreated)

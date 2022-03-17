@@ -12,6 +12,7 @@ type ResponseUpload struct {
 	Message    string `json:"message,omitempty"`
 }
 
+// GetFileURL return the full URl to the uploaded file
 func (rsp *ResponseUpload) GetFileURL() string {
 	return fmt.Sprintf("%su/%s", BaseURL, rsp.ID)
 }
