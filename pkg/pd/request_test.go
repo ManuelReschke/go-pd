@@ -13,11 +13,15 @@ func TestPD_RequestUpload(t *testing.T) {
 		PathToFile: "/test/path/file.data",
 		Anonymous:  true,
 		FileName:   "test123",
+		URL:        "http://example.url",
+		Auth:       pd.Auth{APIKey: "test-key"},
 	}
 
 	assert.Equal(t, "/test/path/file.data", ru.PathToFile)
 	assert.Equal(t, true, ru.Anonymous)
 	assert.Equal(t, "test123", ru.FileName)
+	assert.Equal(t, "http://example.url", ru.URL)
+	assert.Equal(t, "test-key", ru.Auth.APIKey)
 }
 
 func TestPD_RequestUpload_GetFileName(t *testing.T) {

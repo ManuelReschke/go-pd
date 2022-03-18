@@ -1,9 +1,11 @@
 package pd
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
@@ -101,6 +103,11 @@ func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error
 		"anonymous": r.Anonymous,
 	}
 
+	// pixeldrain want an empty username and the APIKey as password
+	if r.Auth.APIKey != "" && !r.Anonymous {
+		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+	}
+
 	rsp, err := pd.Client.Request.Post(r.URL, pd.Client.Header, reqFileUpload, reqParams)
 	if pd.Debug {
 		log.Println(rsp.Dump())
@@ -138,6 +145,11 @@ func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error)
 		"anonymous": r.Anonymous,
 	}
 
+	// pixeldrain want an empty username and the APIKey as password
+	if r.Auth.APIKey != "" && !r.Anonymous {
+		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+	}
+
 	rsp, err := pd.Client.Request.Put(r.URL, pd.Client.Header, file, reqParams)
 	if pd.Debug {
 		log.Println(rsp.Dump())
@@ -148,6 +160,9 @@ func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error)
 
 	uploadRsp := &ResponseUpload{}
 	uploadRsp.StatusCode = rsp.Response().StatusCode
+	if uploadRsp.StatusCode == http.StatusCreated {
+		uploadRsp.Success = true
+	}
 	err = rsp.ToJSON(uploadRsp)
 	if err != nil {
 		return nil, err
@@ -160,4 +175,16 @@ func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error)
 func (pd *PixelDrainClient) GetFile() (*ResponseUpload, error) {
 	// todo
 	return nil, nil
+}
+
+// addBasicAuthHeader create a http basic auth header from username and password
+func addBasicAuthHeader(h req.Header, u string, p string) *req.Header {
+	h["Authorization"] = "Basic " + generateBasicAuthToken(u, p)
+	return &h
+}
+
+// generateBasicAuthToken generate string for basic auth header
+func generateBasicAuthToken(u string, p string) string {
+	auth := u + ":" + p
+	return base64.StdEncoding.EncodeToString([]byte(auth))
 }

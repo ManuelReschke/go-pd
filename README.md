@@ -18,7 +18,7 @@ Because we want a simple, fast, robust and 100% tested go package to upload to p
 import "github.com/ManuelReschke/go-pd/pkg/pd"
 ```
 
-## Example 1 - the easiest way to upload a file
+## Example 1 - the easiest way to upload an anonymous file
 
 ```go
 package main
@@ -50,7 +50,7 @@ func main() {
 }
 ```
 
-## Example 2 - advanced way to upload a file
+## Example 2 - advanced way to upload a file to user account
 
 ```go
 package main
@@ -66,7 +66,10 @@ func main() {
 	req := &pd.RequestUpload{
 		PathToFile: "testdata/cat.jpg",
 		FileName:   "test_post_cat.jpg",
-		Anonymous:  true,
+		Anonymous:  false,
+		Auth: pd.Auth{
+			APIKey: "you-api-key-from-pixeldrain-account",
+		},
 	}
 
 	// set specific request options

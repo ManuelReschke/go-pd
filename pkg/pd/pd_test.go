@@ -3,7 +3,9 @@ package pd_test
 import (
 	"fmt"
 	"github.com/ManuelReschke/go-pd/pkg/pd"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
@@ -43,8 +45,9 @@ func TestPD_UploadPOST_Integration(t *testing.T) {
 	req := &pd.RequestUpload{
 		PathToFile: "testdata/cat.jpg",
 		FileName:   "test_post_cat.jpg",
-		Anonymous:  true,
 	}
+
+	setAuthFromEnv(req)
 
 	c := pd.New(nil, nil)
 	rsp, err := c.UploadPOST(req)
@@ -91,8 +94,9 @@ func TestPD_UploadPUT_Integration(t *testing.T) {
 	req := &pd.RequestUpload{
 		PathToFile: "testdata/cat.jpg",
 		FileName:   "test_put_cat.jpg",
-		Anonymous:  true,
 	}
+
+	setAuthFromEnv(req)
 
 	c := pd.New(nil, nil)
 	rsp, err := c.UploadPUT(req)
@@ -103,4 +107,22 @@ func TestPD_UploadPUT_Integration(t *testing.T) {
 	assert.Equal(t, 201, rsp.StatusCode)
 	assert.NotEmpty(t, rsp.ID)
 	fmt.Println("PUT Req: " + rsp.GetFileURL())
+}
+
+func setAuthFromEnv(r *pd.RequestUpload) *pd.RequestUpload {
+	// load api key from .env_test file
+	currentWorkDirectory, _ := os.Getwd()
+	_ = godotenv.Load(currentWorkDirectory + "/.env_test")
+	apiKey := os.Getenv("API_KEY")
+	anonymous := true
+	if apiKey != "" {
+		anonymous = false
+	}
+
+	r.Anonymous = anonymous
+	r.Auth = pd.Auth{
+		APIKey: apiKey,
+	}
+
+	return r
 }
