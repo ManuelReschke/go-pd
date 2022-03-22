@@ -11,6 +11,15 @@ type RequestUpload struct {
 	URL        string // specific the upload endpoint, is set by default with the correct values
 }
 
+// RequestDownload container for the file download
+type RequestDownload struct {
+	ID         string
+	Download   bool
+	PathToSave string
+	Auth       Auth
+	URL        string // specific the API endpoint, is set by default with the correct values
+}
+
 // Auth hold the auth information
 type Auth struct {
 	APIKey string // if you have an account you can enter here your API Key for uploading in your account
@@ -22,4 +31,14 @@ func (r *RequestUpload) GetFileName() string {
 		r.FileName = filepath.Base(r.PathToFile)
 	}
 	return r.FileName
+}
+
+// IsAuthAvailable checks if an API Key available
+func (a *Auth) IsAuthAvailable() bool {
+	auth := false
+	if a.APIKey != "" {
+		auth = true
+	}
+
+	return auth
 }

@@ -100,21 +100,29 @@ func main() {
 - [x] implement simple upload over PUT /file/{filename}
 - [x] write unit tests
 - [x] write integration tests
-- [ ] add API-KEY auth to requests
+- [x] add API-KEY auth to requests
 - [ ] implement all other API methods
+  - [x] implement GET - /file/{id}
+  - [ ] implement GET - /file/{id}/info
+  - [ ] implement GET - /file/{id}/thumbnail?width=x&height=x
+  - [ ] implement DELETE - /file/{id}
+  - [ ] implement POST - /list
+  - [ ] implement GET - /list/{id}
+  - [ ] implement POST - /user/files
+  - [ ] implement GET - /user/lists
 - [ ] create CLI tool for uploading to pixeldrain.com
 
 ## PixelDrain methods covered by this package
 
 ### File Methods
-| Status  |  PixelDrain Call |  Package Func |
-|---|---|---|
-|  [<span style="color:green">DONE</span>] | POST - /file  | UploadPOST(r *RequestUpload) (*ResponseUpload, error)  |
-|  [<span style="color:green">DONE</span>] | PUT - /file/{name}  |  UploadPUT(r *RequestUpload) (*ResponseUpload, error) |
-|  [<span style="color:red">ToDo</span>] | GET - /file/{id}  | -  |
-|  [<span style="color:red">ToDo</span>] | GET - /file/{id}/info |  - |
-|  [<span style="color:red">ToDo</span>] | GET - /file/{id}/thumbnail?width=x&height=x | -  |
-|  [<span style="color:red">ToDo</span>] | DELETE - /file/{id}  | -  |
+| Status                                  |  PixelDrain Call |  Package Func |
+|-----------------------------------------|---|---|
+| [<span style="color:green">DONE</span>] | POST - /file  | UploadPOST(r *RequestUpload) (*ResponseUpload, error)  |
+| [<span style="color:green">DONE</span>] | PUT - /file/{name}  |  UploadPUT(r *RequestUpload) (*ResponseUpload, error) |
+| [<span style="color:green">DONE</span>] | GET - /file/{id}  | Download(r *RequestDownload) (*ResponseDownload, error) |
+| [<span style="color:red">ToDo</span>]   | GET - /file/{id}/info |  - |
+| [<span style="color:red">ToDo</span>]   | GET - /file/{id}/thumbnail?width=x&height=x | -  |
+| [<span style="color:red">ToDo</span>]   | DELETE - /file/{id}  | -  |
 ### List Methods
 | Status  |  PixelDrain Call |  Package Func |
 |---|---|---|

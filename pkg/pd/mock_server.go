@@ -1,9 +1,11 @@
 package pd
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 )
 
@@ -45,9 +47,9 @@ func MockFileUploadServer() *httptest.Server {
 				log.Fatalln("Empty body in PUT request")
 			}
 
-			if r.FormValue("anonymous") == "" {
-				log.Fatalln("Except request to have form value 'anonymous'")
-			}
+			//if r.FormValue("anonymous") == "" {
+			//	log.Fatalln("Except request to have form value 'anonymous'")
+			//}
 
 			w.WriteHeader(http.StatusCreated)
 			str := `{
@@ -55,6 +57,25 @@ func MockFileUploadServer() *httptest.Server {
 			}`
 			_, _ = w.Write([]byte(str))
 		case "GET":
+			if !strings.Contains(r.URL.EscapedPath(), "/file/") {
+				log.Fatalf("wrong path'%s'", r.URL.EscapedPath())
+			}
+
+			_ = r.ParseForm()
+
+			fileID := filepath.Base(r.URL.EscapedPath())
+			if len(fileID) == 0 {
+				log.Fatalf("empty file ID '%s'", fileID)
+			}
+
+			fileContent, err := ioutil.ReadFile("testdata/cat.jpg")
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(fileContent)
+
 			return
 		default:
 			return

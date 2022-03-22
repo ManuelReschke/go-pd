@@ -9,13 +9,12 @@ import (
 )
 
 func TestPD_ResponseUpload(t *testing.T) {
-	rsp := &pd.ResponseUpload{
-		StatusCode: 201,
-		ID:         "test123",
-		Success:    true,
-		Value:      "test",
-		Message:    "test message",
-	}
+	rsp := &pd.ResponseUpload{}
+	rsp.StatusCode = 201
+	rsp.ID = "test123"
+	rsp.Success = true
+	rsp.Value = "test"
+	rsp.Message = "test message"
 
 	assert.Equal(t, 201, rsp.StatusCode)
 	assert.Equal(t, "test123", rsp.ID)

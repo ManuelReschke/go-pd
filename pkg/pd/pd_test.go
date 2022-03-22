@@ -47,7 +47,7 @@ func TestPD_UploadPOST_Integration(t *testing.T) {
 		FileName:   "test_post_cat.jpg",
 	}
 
-	setAuthFromEnv(req)
+	req.Auth = setAuthFromEnv()
 
 	c := pd.New(nil, nil)
 	rsp, err := c.UploadPOST(req)
@@ -96,7 +96,7 @@ func TestPD_UploadPUT_Integration(t *testing.T) {
 		FileName:   "test_put_cat.jpg",
 	}
 
-	setAuthFromEnv(req)
+	req.Auth = setAuthFromEnv()
 
 	c := pd.New(nil, nil)
 	rsp, err := c.UploadPUT(req)
@@ -109,20 +109,59 @@ func TestPD_UploadPUT_Integration(t *testing.T) {
 	fmt.Println("PUT Req: " + rsp.GetFileURL())
 }
 
-func setAuthFromEnv(r *pd.RequestUpload) *pd.RequestUpload {
+// TestPD_Download is a unit test for the GET "download" method
+func TestPD_Download(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/file/K1dA8U5W"
+
+	req := &pd.RequestDownload{
+		PathToSave: "testdata/cat_download.jpg",
+		ID:         "K1dA8U5W",
+		URL:        testURL,
+	}
+
+	c := pd.New(nil, nil)
+	rsp, err := c.Download(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+}
+
+// TestPD_Download_Integration run a real integration test against the service
+func TestPD_Download_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(SkipIntegrationTest)
+	}
+
+	req := &pd.RequestDownload{
+		PathToSave: "testdata/cat_download.jpg",
+		ID:         "K1dA8U5W",
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.Download(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, "cat_download.jpg", rsp.FileName)
+	assert.Equal(t, int64(37621), rsp.FileSize)
+}
+
+func setAuthFromEnv() pd.Auth {
 	// load api key from .env_test file
 	currentWorkDirectory, _ := os.Getwd()
 	_ = godotenv.Load(currentWorkDirectory + "/.env_test")
 	apiKey := os.Getenv("API_KEY")
-	anonymous := true
-	if apiKey != "" {
-		anonymous = false
-	}
 
-	r.Anonymous = anonymous
-	r.Auth = pd.Auth{
+	return pd.Auth{
 		APIKey: apiKey,
 	}
-
-	return r
 }
