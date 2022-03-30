@@ -121,12 +121,12 @@ func main() {
 ## PixelDrain methods covered by this package
 
 ### File Methods
-| PixelDrain Call                             |  Package Func |
-|---------------------------------------------|---|
-| [x] POST - /file                            | UploadPOST(r *RequestUpload) (*ResponseUpload, error)  |
-| [x] PUT - /file/{name}                          |  UploadPUT(r *RequestUpload) (*ResponseUpload, error) |
-| [x] GET - /file/{id}                            | Download(r *RequestDownload) (*ResponseDownload, error) |
-| [] GET - /file/{id}/info                       |  GetFileInfo(r *RequestFileInfo) (*ResponseFileInfo, error) |
+| PixelDrain Call                                |  Package Func |
+|------------------------------------------------|---|
+| [x] POST - /file                               | UploadPOST(r *RequestUpload) (*ResponseUpload, error) |
+| [x] PUT - /file/{name}                         | UploadPUT(r *RequestUpload) (*ResponseUpload, error) |
+| [x] GET - /file/{id}                           | Download(r *RequestDownload) (*ResponseDownload, error) |
+| [x] GET - /file/{id}/info                      | GetFileInfo(r *RequestFileInfo) (*ResponseFileInfo, error) |
 | [] GET - /file/{id}/thumbnail?width=x&height=x | -  |
 | [] DELETE - /file/{id}                         | -  |
 ### List Methods
