@@ -20,6 +20,13 @@ type RequestDownload struct {
 	URL        string // specific the API endpoint, is set by default with the correct values
 }
 
+// RequestFileInfo the FileInfo request needs only an ID
+type RequestFileInfo struct {
+	ID   string
+	Auth Auth
+	URL  string
+}
+
 // Auth hold the auth information
 type Auth struct {
 	APIKey string // if you have an account you can enter here your API Key for uploading in your account

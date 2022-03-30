@@ -12,10 +12,16 @@ A free pixeldrain.com client written in go. We use the super power from [imroc/r
 
 Because we want a simple, fast, robust and 100% tested go package to upload to pixeldrain.com.
 
-## Import the pkg / lib
+### Import the pkg / lib (Go < v1.7)
 
-```go
-import "github.com/ManuelReschke/go-pd/pkg/pd"
+```
+ go get github.com/ManuelReschke/go-pd/pkg/pd
+```
+
+### Import the pkg / lib (Go > v1.7)
+
+```
+ go install github.com/ManuelReschke/go-pd/pkg/pd
 ```
 
 ## Example 1 - the easiest way to upload an anonymous file
@@ -103,7 +109,7 @@ func main() {
 - [x] add API-KEY auth to requests
 - [ ] implement all other API methods
   - [x] implement GET - /file/{id}
-  - [ ] implement GET - /file/{id}/info
+  - [x] implement GET - /file/{id}/info
   - [ ] implement GET - /file/{id}/thumbnail?width=x&height=x
   - [ ] implement DELETE - /file/{id}
   - [ ] implement POST - /list
@@ -115,24 +121,38 @@ func main() {
 ## PixelDrain methods covered by this package
 
 ### File Methods
-| Status                                  |  PixelDrain Call |  Package Func |
-|-----------------------------------------|---|---|
-| [<span style="color:green">DONE</span>] | POST - /file  | UploadPOST(r *RequestUpload) (*ResponseUpload, error)  |
-| [<span style="color:green">DONE</span>] | PUT - /file/{name}  |  UploadPUT(r *RequestUpload) (*ResponseUpload, error) |
-| [<span style="color:green">DONE</span>] | GET - /file/{id}  | Download(r *RequestDownload) (*ResponseDownload, error) |
-| [<span style="color:red">ToDo</span>]   | GET - /file/{id}/info |  - |
-| [<span style="color:red">ToDo</span>]   | GET - /file/{id}/thumbnail?width=x&height=x | -  |
-| [<span style="color:red">ToDo</span>]   | DELETE - /file/{id}  | -  |
+| PixelDrain Call                             |  Package Func |
+|---------------------------------------------|---|
+| [x] POST - /file                            | UploadPOST(r *RequestUpload) (*ResponseUpload, error)  |
+| [x] PUT - /file/{name}                          |  UploadPUT(r *RequestUpload) (*ResponseUpload, error) |
+| [x] GET - /file/{id}                            | Download(r *RequestDownload) (*ResponseDownload, error) |
+| [] GET - /file/{id}/info                       |  - |
+| [] GET - /file/{id}/thumbnail?width=x&height=x | -  |
+| [] DELETE - /file/{id}                         | -  |
 ### List Methods
-| Status  |  PixelDrain Call |  Package Func |
-|---|---|---|
-|  [<span style="color:red">ToDo</span>] | POST - /list | -  |
-|  [<span style="color:red">ToDo</span>] | GET - /list/{id} | -  |
+|  PixelDrain Call |  Package Func |
+|---|---|
+| [] POST - /list | -  |
+| [] GET - /list/{id} | -  |
 ### User Methods
-| Status  |  PixelDrain Call |  Package Func |
-|---|---|---|
-|  [<span style="color:red">ToDo</span>] | POST - /user/files | -  |
-|  [<span style="color:red">ToDo</span>] | GET - /user/lists | -  |
+| PixelDrain Call |  Package Func |
+|---|---|
+| [] POST - /user/files | -  |
+| [] GET - /user/lists | -  |
+
+## Package CLI commands
+
+### Unit Tests - Run pkg unit tests
+Run unit tests against a local emulated server.
+```shell
+make test
+```
+
+### Integration Tests - Run pkg unit tests
+Run real integration tests against the real pixeldrain.com website.
+```shell
+make test-integration
+```
 
 ## License
 

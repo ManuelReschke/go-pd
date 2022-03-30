@@ -225,6 +225,43 @@ func (pd *PixelDrainClient) Download(r *RequestDownload) (*ResponseDownload, err
 	return downloadRsp, nil
 }
 
+// GetFileInfo GET /api/file/{id}/info
+func (pd *PixelDrainClient) GetFileInfo(r *RequestFileInfo) (*ResponseFileInfo, error) {
+	if r.ID == "" {
+		return nil, errors.New(ErrMissingFileID)
+	}
+
+	if r.URL == "" {
+		r.URL = fmt.Sprintf(APIURL+"/file/%s/info", r.ID)
+	}
+
+	// pixeldrain want an empty username and the APIKey as password
+	if r.Auth.IsAuthAvailable() {
+		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+	}
+
+	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header)
+	if pd.Debug {
+		log.Println(rsp.Dump())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	fileInfoRsp := &ResponseFileInfo{}
+	fileInfoRsp.StatusCode = rsp.Response().StatusCode
+	if fileInfoRsp.StatusCode == http.StatusOK {
+		fileInfoRsp.Success = true
+	}
+	err = rsp.ToJSON(fileInfoRsp)
+	if err != nil {
+		return nil, err
+	}
+
+	return fileInfoRsp, nil
+}
+
+// pixeldrain want an empty username and the APIKey as password
 // addBasicAuthHeader create a http basic auth header from username and password
 func addBasicAuthHeader(h req.Header, u string, p string) *req.Header {
 	h["Authorization"] = "Basic " + generateBasicAuthToken(u, p)

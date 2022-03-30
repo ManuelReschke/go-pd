@@ -155,6 +155,55 @@ func TestPD_Download_Integration(t *testing.T) {
 	assert.Equal(t, int64(37621), rsp.FileSize)
 }
 
+// TestPD_GetFileInfo is a unit test for the GET "file info" method
+func TestPD_GetFileInfo(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/file/K1dA8U5W/info"
+
+	req := &pd.RequestFileInfo{
+		ID:  "K1dA8U5W",
+		URL: testURL,
+	}
+
+	c := pd.New(nil, nil)
+	rsp, err := c.GetFileInfo(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "K1dA8U5W", rsp.ID)
+	assert.Equal(t, 37621, rsp.Size)
+	assert.Equal(t, "1af93d68009bdfd52e1da100a019a30b5fe083d2d1130919225ad0fd3d1fed0b", rsp.HashSha256)
+}
+
+// TestPD_GetFileInfo_Integration run a real integration test against the service
+func TestPD_GetFileInfo_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(SkipIntegrationTest)
+	}
+
+	req := &pd.RequestFileInfo{
+		ID: "K1dA8U5W",
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.GetFileInfo(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "K1dA8U5W", rsp.ID)
+	assert.Equal(t, 37621, rsp.Size)
+	assert.Equal(t, "1af93d68009bdfd52e1da100a019a30b5fe083d2d1130919225ad0fd3d1fed0b", rsp.HashSha256)
+}
+
 func setAuthFromEnv() pd.Auth {
 	// load api key from .env_test file
 	currentWorkDirectory, _ := os.Getwd()
