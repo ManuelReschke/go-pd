@@ -204,6 +204,59 @@ func TestPD_GetFileInfo_Integration(t *testing.T) {
 	assert.Equal(t, "1af93d68009bdfd52e1da100a019a30b5fe083d2d1130919225ad0fd3d1fed0b", rsp.HashSha256)
 }
 
+// TestPD_DownloadThumbnail is a unit test for the GET "download thumbnail" method
+func TestPD_DownloadThumbnail(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/file/K1dA8U5W/thumbnail?width=64&height=64"
+
+	req := &pd.RequestThumbnail{
+		ID:         "K1dA8U5W",
+		Height:     "64",
+		Width:      "64",
+		PathToSave: "testdata/cat_download_thumbnail.jpg",
+		URL:        testURL,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.DownloadThumbnail(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, "cat_download_thumbnail.jpg", rsp.FileName)
+	assert.Equal(t, int64(7056), rsp.FileSize)
+}
+
+// TestPD_DownloadThumbnail_Integration run a real integration test against the service
+func TestPD_DownloadThumbnail_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(SkipIntegrationTest)
+	}
+
+	req := &pd.RequestThumbnail{
+		ID:         "K1dA8U5W",
+		Height:     "64",
+		Width:      "64",
+		PathToSave: "testdata/cat_download_thumbnail.jpg",
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.DownloadThumbnail(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, "cat_download_thumbnail.jpg", rsp.FileName)
+	assert.Equal(t, int64(7056), rsp.FileSize)
+}
+
 func setAuthFromEnv() pd.Auth {
 	// load api key from .env_test file
 	currentWorkDirectory, _ := os.Getwd()

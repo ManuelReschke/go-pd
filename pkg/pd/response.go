@@ -47,3 +47,11 @@ type ResponseFileInfo struct {
 	StatusCode        int       `json:"code"`
 	ResponseDefault
 }
+
+type ResponseThumbnail struct {
+	StatusCode int    `json:"code"`
+	FilePath   string `json:"file_path"`
+	FileName   string `json:"file_name"`
+	FileSize   int64  `json:"file_size"`
+	ResponseDefault
+}

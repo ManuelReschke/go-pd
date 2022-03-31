@@ -43,3 +43,19 @@ func TestPD_RequestDownload(t *testing.T) {
 	assert.Equal(t, "http://example.url", r.URL)
 	assert.Equal(t, "test-key", r.Auth.APIKey)
 }
+
+func TestPD_RequestThumbnail(t *testing.T) {
+	r := &pd.RequestThumbnail{
+		ID:     "123",
+		Width:  "16",
+		Height: "16",
+		URL:    "http://example.url",
+		Auth:   pd.Auth{APIKey: "test-key"},
+	}
+
+	assert.Equal(t, "123", r.ID)
+	assert.Equal(t, "16", r.Width)
+	assert.Equal(t, "16", r.Height)
+	assert.Equal(t, "http://example.url", r.URL)
+	assert.Equal(t, "test-key", r.Auth.APIKey)
+}

@@ -1,3 +1,4 @@
 .vscode
 .env_test
 testdata/cat_download.jpg
+testdata/cat_download_thumbnail.jpg

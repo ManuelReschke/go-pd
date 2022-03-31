@@ -85,11 +85,6 @@ func MockFileUploadServer() *httptest.Server {
 			if r.URL.EscapedPath() == "/file/K1dA8U5W/info" {
 				_ = r.ParseForm()
 
-				fileID := filepath.Base(r.URL.EscapedPath())
-				if len(fileID) == 0 {
-					log.Fatalf("empty file ID '%s'", fileID)
-				}
-
 				w.WriteHeader(http.StatusOK)
 				str := `{
 				  "id": "K1dA8U5W",
@@ -107,6 +102,20 @@ func MockFileUploadServer() *httptest.Server {
 				  "can_edit": true
 				}`
 				_, _ = w.Write([]byte(str))
+			}
+
+			// ##########################################
+			// GET /file/{id}/thumbnail?width=x&height=x
+			if r.URL.EscapedPath() == "/file/K1dA8U5W/thumbnail" {
+				_ = r.ParseForm()
+
+				fileContent, err := ioutil.ReadFile("testdata/cat_thumbnail.jpg")
+				if err != nil {
+					log.Fatalln(err)
+				}
+
+				w.WriteHeader(http.StatusOK)
+				w.Write(fileContent)
 			}
 
 			return

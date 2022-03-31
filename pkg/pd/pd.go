@@ -261,6 +261,64 @@ func (pd *PixelDrainClient) GetFileInfo(r *RequestFileInfo) (*ResponseFileInfo, 
 	return fileInfoRsp, nil
 }
 
+// DownloadThumbnail GET /file/{id}/thumbnail?width=x&height=x
+func (pd *PixelDrainClient) DownloadThumbnail(r *RequestThumbnail) (*ResponseThumbnail, error) {
+	if r.PathToSave == "" {
+		return nil, errors.New(ErrMissingPathToFile)
+	}
+
+	if r.ID == "" {
+		return nil, errors.New(ErrMissingFileID)
+	}
+
+	if r.URL == "" {
+		r.URL = fmt.Sprintf(APIURL+"/file/%s/thumbnail", r.ID)
+	}
+
+	queryParams := req.QueryParam{}
+	if r.Width != "" {
+		queryParams["width"] = r.Width
+	}
+	if r.Height != "" {
+		queryParams["height"] = r.Height
+	}
+
+	// pixeldrain want an empty username and the APIKey as password
+	if r.Auth.IsAuthAvailable() {
+		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+	}
+
+	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header, queryParams)
+	if pd.Debug {
+		log.Println(rsp.Dump())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	err = rsp.ToFile(r.PathToSave)
+	if err != nil {
+		return nil, err
+	}
+
+	fInfo, err := os.Stat(r.PathToSave)
+	if err != nil {
+		return nil, err
+	}
+
+	rspStruct := &ResponseThumbnail{
+		StatusCode: rsp.Response().StatusCode,
+		FilePath:   r.PathToSave,
+		FileName:   fInfo.Name(),
+		FileSize:   fInfo.Size(),
+		ResponseDefault: ResponseDefault{
+			Success: true,
+		},
+	}
+
+	return rspStruct, nil
+}
+
 // pixeldrain want an empty username and the APIKey as password
 // addBasicAuthHeader create a http basic auth header from username and password
 func addBasicAuthHeader(h req.Header, u string, p string) *req.Header {
