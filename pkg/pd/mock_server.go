@@ -16,27 +16,38 @@ func MockFileUploadServer() *httptest.Server {
 		case "POST":
 			// ##########################################
 			// POST /file
-			if r.URL.EscapedPath() != "/file" {
-				log.Fatalf("wrong path'%s'", r.URL.EscapedPath())
-			}
+			if r.URL.EscapedPath() == "/file" {
+				_ = r.ParseMultipartForm(10485760)
+				file := r.MultipartForm.File["file"]
 
-			_ = r.ParseMultipartForm(10485760)
-			file := r.MultipartForm.File["file"]
+				if file == nil || len(file) == 0 {
+					log.Fatalln("Except request to have 'file'")
+				}
 
-			if file == nil || len(file) == 0 {
-				log.Fatalln("Except request to have 'file'")
-			}
+				if r.FormValue("anonymous") == "" {
+					log.Fatalln("Except request to have form value 'anonymous'")
+				}
 
-			if r.FormValue("anonymous") == "" {
-				log.Fatalln("Except request to have form value 'anonymous'")
-			}
-
-			w.WriteHeader(http.StatusCreated)
-			str := `{
+				w.WriteHeader(http.StatusCreated)
+				str := `{
 				"success": true,
 				"id": "123456"
 			}`
-			_, _ = w.Write([]byte(str))
+				_, _ = w.Write([]byte(str))
+			}
+
+			// ##########################################
+			// POST /list
+			if r.URL.EscapedPath() == "/list" {
+				_ = r.ParseForm()
+
+				w.WriteHeader(http.StatusOK)
+				str := `{
+					"success": true,
+					"id": "123456"
+				}`
+				_, _ = w.Write([]byte(str))
+			}
 
 		case "PUT":
 			// ##########################################
@@ -116,6 +127,21 @@ func MockFileUploadServer() *httptest.Server {
 
 				w.WriteHeader(http.StatusOK)
 				w.Write(fileContent)
+			}
+
+			return
+		case "DELETE":
+			// ##########################################
+			// DELETE /file/{id}
+			if r.URL.EscapedPath() == "/file/K1dA8U5W" {
+
+				w.WriteHeader(http.StatusOK)
+				str := `{
+					"success": true,
+					"value": "file_deleted",
+					"message": "The file has been deleted."
+				}`
+				_, _ = w.Write([]byte(str))
 			}
 
 			return

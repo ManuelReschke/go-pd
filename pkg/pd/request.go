@@ -59,3 +59,24 @@ type RequestThumbnail struct {
 	Auth       Auth
 	URL        string
 }
+
+// RequestDelete delete the file if you are the owner with the given ID
+type RequestDelete struct {
+	ID   string
+	Auth Auth
+	URL  string
+}
+
+// RequestCreateList create new list
+type RequestCreateList struct {
+	Title     string                  `json:"title"`
+	Anonymous bool                    `json:"anonymous"`
+	Files     []RequestCreateListFile `json:"files"`
+	Auth      Auth
+	URL       string
+}
+
+type RequestCreateListFile struct {
+	ID          string `json:"id"`
+	Description string `json:"description"`
+}

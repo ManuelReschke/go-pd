@@ -59,3 +59,15 @@ func TestPD_RequestThumbnail(t *testing.T) {
 	assert.Equal(t, "http://example.url", r.URL)
 	assert.Equal(t, "test-key", r.Auth.APIKey)
 }
+
+func TestPD_RequestDelete(t *testing.T) {
+	r := &pd.RequestDelete{
+		ID:   "123",
+		URL:  "http://example.url",
+		Auth: pd.Auth{APIKey: "test-key"},
+	}
+
+	assert.Equal(t, "123", r.ID)
+	assert.Equal(t, "http://example.url", r.URL)
+	assert.Equal(t, "test-key", r.Auth.APIKey)
+}

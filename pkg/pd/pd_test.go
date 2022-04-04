@@ -257,6 +257,119 @@ func TestPD_DownloadThumbnail_Integration(t *testing.T) {
 	assert.Equal(t, int64(7056), rsp.FileSize)
 }
 
+// TestPD_Delete is a unit test for the DELETE "delete" method
+func TestPD_Delete(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/file/K1dA8U5W"
+
+	req := &pd.RequestDelete{
+		ID:  "K1dA8U5W",
+		URL: testURL,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.Delete(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "file_deleted", rsp.Value)
+	assert.Equal(t, "The file has been deleted.", rsp.Message)
+}
+
+// TestPD_Delete_Integration run a real integration test against the service
+func TestPD_Delete_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(SkipIntegrationTest)
+	}
+
+	req := &pd.RequestDelete{
+		ID: "123", // K1dA8U5W
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.Delete(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, false, rsp.Success)
+	assert.Equal(t, "not_found", rsp.Value)
+	assert.Equal(t, "The entity you requested could not be found", rsp.Message)
+}
+
+// TestPD_Delete_Integration run a real integration test against the service
+func TestPD_CreateList(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/list"
+
+	// files to add
+	files := []pd.RequestCreateListFile{
+		{ID: "K1dA8U5W", Description: "Hallo Welt"},
+		{ID: "bmrc4iyD", Description: "Hallo Welt 2"},
+	}
+
+	// create list request
+	req := &pd.RequestCreateList{
+		Title:     "Test List",
+		Anonymous: false,
+		Files:     files,
+		URL:       testURL,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.CreateList(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.NotEmpty(t, rsp.ID)
+}
+
+// TestPD_Delete_Integration run a real integration test against the service
+func TestPD_CreateList_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(SkipIntegrationTest)
+	}
+
+	// files to add
+	files := []pd.RequestCreateListFile{
+		{ID: "123456", Description: "Hallo Welt"},
+		{ID: "678900", Description: "Hallo Welt 2"},
+	}
+
+	// create list request
+	req := &pd.RequestCreateList{
+		Title:     "Test List",
+		Anonymous: false,
+		Files:     files,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.CreateList(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 422, rsp.StatusCode)
+	assert.Equal(t, false, rsp.Success)
+	assert.Equal(t, "list_file_not_found", rsp.Value)
+	assert.Equal(t, "File was not found in the database", rsp.Message)
+}
+
 func setAuthFromEnv() pd.Auth {
 	// load api key from .env_test file
 	currentWorkDirectory, _ := os.Getwd()

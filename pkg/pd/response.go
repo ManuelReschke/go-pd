@@ -6,14 +6,14 @@ import (
 )
 
 type ResponseDefault struct {
-	Success bool   `json:"success"`
-	Value   string `json:"value,omitempty"`
-	Message string `json:"message,omitempty"`
+	StatusCode int    `json:"status_code"`
+	Success    bool   `json:"success"`
+	Value      string `json:"value,omitempty"`
+	Message    string `json:"message,omitempty"`
 }
 
 type ResponseUpload struct {
-	StatusCode int    `json:"code"`
-	ID         string `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	ResponseDefault
 }
 
@@ -23,10 +23,9 @@ func (rsp *ResponseUpload) GetFileURL() string {
 }
 
 type ResponseDownload struct {
-	StatusCode int    `json:"code"`
-	FilePath   string `json:"file_path"`
-	FileName   string `json:"file_name"`
-	FileSize   int64  `json:"file_size"`
+	FilePath string `json:"file_path"`
+	FileName string `json:"file_name"`
+	FileSize int64  `json:"file_size"`
 	ResponseDefault
 }
 
@@ -44,14 +43,21 @@ type ResponseFileInfo struct {
 	ThumbnailHref     string    `json:"thumbnail_href"`
 	HashSha256        string    `json:"hash_sha256"`
 	CanEdit           bool      `json:"can_edit"`
-	StatusCode        int       `json:"code"`
 	ResponseDefault
 }
 
 type ResponseThumbnail struct {
-	StatusCode int    `json:"code"`
-	FilePath   string `json:"file_path"`
-	FileName   string `json:"file_name"`
-	FileSize   int64  `json:"file_size"`
+	FilePath string `json:"file_path"`
+	FileName string `json:"file_name"`
+	FileSize int64  `json:"file_size"`
+	ResponseDefault
+}
+
+type ResponseDelete struct {
+	ResponseDefault
+}
+
+type ResponseCreateList struct {
+	ID string `json:"id"`
 	ResponseDefault
 }

@@ -2,6 +2,7 @@ package pd
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -213,12 +214,12 @@ func (pd *PixelDrainClient) Download(r *RequestDownload) (*ResponseDownload, err
 	}
 
 	downloadRsp := &ResponseDownload{
-		StatusCode: rsp.Response().StatusCode,
-		FilePath:   r.PathToSave,
-		FileName:   fInfo.Name(),
-		FileSize:   fInfo.Size(),
+		FilePath: r.PathToSave,
+		FileName: fInfo.Name(),
+		FileSize: fInfo.Size(),
 		ResponseDefault: ResponseDefault{
-			Success: true,
+			StatusCode: rsp.Response().StatusCode,
+			Success:    true,
 		},
 	}
 
@@ -261,7 +262,7 @@ func (pd *PixelDrainClient) GetFileInfo(r *RequestFileInfo) (*ResponseFileInfo, 
 	return fileInfoRsp, nil
 }
 
-// DownloadThumbnail GET /file/{id}/thumbnail?width=x&height=x
+// DownloadThumbnail GET /api/file/{id}/thumbnail?width=x&height=x
 func (pd *PixelDrainClient) DownloadThumbnail(r *RequestThumbnail) (*ResponseThumbnail, error) {
 	if r.PathToSave == "" {
 		return nil, errors.New(ErrMissingPathToFile)
@@ -307,14 +308,80 @@ func (pd *PixelDrainClient) DownloadThumbnail(r *RequestThumbnail) (*ResponseThu
 	}
 
 	rspStruct := &ResponseThumbnail{
-		StatusCode: rsp.Response().StatusCode,
-		FilePath:   r.PathToSave,
-		FileName:   fInfo.Name(),
-		FileSize:   fInfo.Size(),
+		FilePath: r.PathToSave,
+		FileName: fInfo.Name(),
+		FileSize: fInfo.Size(),
 		ResponseDefault: ResponseDefault{
-			Success: true,
+			StatusCode: rsp.Response().StatusCode,
+			Success:    true,
 		},
 	}
+
+	return rspStruct, nil
+}
+
+// Delete DELETE /api/file/{id}
+func (pd *PixelDrainClient) Delete(r *RequestDelete) (*ResponseDelete, error) {
+	if r.ID == "" {
+		return nil, errors.New(ErrMissingFileID)
+	}
+
+	if r.URL == "" {
+		r.URL = fmt.Sprintf(APIURL+"/file/%s", r.ID)
+	}
+
+	// pixeldrain want an empty username and the APIKey as password
+	if r.Auth.IsAuthAvailable() {
+		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+	}
+
+	rsp, err := pd.Client.Request.Delete(r.URL, pd.Client.Header)
+	if pd.Debug {
+		log.Println(rsp.Dump())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	rspStruct := &ResponseDelete{}
+	err = rsp.ToJSON(rspStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	rspStruct.StatusCode = rsp.Response().StatusCode
+
+	return rspStruct, nil
+}
+
+// CreateList POST /api/list
+func (pd *PixelDrainClient) CreateList(r *RequestCreateList) (*ResponseCreateList, error) {
+	if r.URL == "" {
+		r.URL = APIURL + "/list"
+	}
+
+	// pixeldrain want an empty username and the APIKey as password
+	if r.Auth.IsAuthAvailable() {
+		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+	}
+
+	data, err := json.Marshal(r)
+
+	rsp, err := pd.Client.Request.Post(r.URL, pd.Client.Header, data)
+	if pd.Debug {
+		log.Println(rsp.Dump())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	rspStruct := &ResponseCreateList{}
+	err = rsp.ToJSON(rspStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	rspStruct.StatusCode = rsp.Response().StatusCode
 
 	return rspStruct, nil
 }

@@ -110,13 +110,14 @@ func main() {
 - [ ] implement all other API methods
   - [x] implement GET - /file/{id}
   - [x] implement GET - /file/{id}/info
-  - [ ] implement GET - /file/{id}/thumbnail?width=x&height=x
-  - [ ] implement DELETE - /file/{id}
-  - [ ] implement POST - /list
+  - [x] implement GET - /file/{id}/thumbnail?width=x&height=x
+  - [x] implement DELETE - /file/{id}
+  - [x] implement POST - /list
   - [ ] implement GET - /list/{id}
   - [ ] implement POST - /user/files
   - [ ] implement GET - /user/lists
 - [ ] create CLI tool for uploading to pixeldrain.com
+- [ ] refactor the hole shit and use nice to have patterns (like Option Pattern)
 
 ## PixelDrain methods covered by this package
 
@@ -128,17 +129,17 @@ func main() {
 | [x] GET - /file/{id}                            | Download(r *RequestDownload) (*ResponseDownload, error) |
 | [x] GET - /file/{id}/info                       | GetFileInfo(r *RequestFileInfo) (*ResponseFileInfo, error) |
 | [x] GET - /file/{id}/thumbnail?width=x&height=x | DownloadThumbnail(r *RequestThumbnail) (*ResponseThumbnail, error)  |
-| [] DELETE - /file/{id}                          | -  |
+| [x] DELETE - /file/{id}                         | Delete(r *RequestDelete) (*ResponseDelete, error)  |
 ### List Methods
-|  PixelDrain Call |  Package Func |
-|---|---|
-| [] POST - /list | -  |
-| [] GET - /list/{id} | -  |
+| PixelDrain Call      |  Package Func |
+|----------------------|---|
+| [x] POST - /list     | CreateList(r *RequestCreateList) (*ResponseCreateList, error)  |
+| [ ] GET - /list/{id} | -  |
 ### User Methods
-| PixelDrain Call |  Package Func |
-|---|---|
-| [] POST - /user/files | -  |
-| [] GET - /user/lists | -  |
+| PixelDrain Call        |  Package Func |
+|------------------------|---|
+| [ ] POST - /user/files | -  |
+| [ ] GET - /user/lists  | -  |
 
 ## Package CLI commands
 
