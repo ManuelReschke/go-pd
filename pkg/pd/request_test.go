@@ -71,3 +71,56 @@ func TestPD_RequestDelete(t *testing.T) {
 	assert.Equal(t, "http://example.url", r.URL)
 	assert.Equal(t, "test-key", r.Auth.APIKey)
 }
+
+func TestPD_RequestCreateList(t *testing.T) {
+	r := &pd.RequestCreateList{
+		Title:     "test",
+		Anonymous: true,
+		Files: []pd.ListFile{
+			{ID: "123", Description: "Test Description"},
+			{ID: "456", Description: "Test Description"},
+		},
+		URL:  "http://example.url",
+		Auth: pd.Auth{APIKey: "test-key"},
+	}
+
+	assert.Equal(t, "test", r.Title)
+	assert.Equal(t, true, r.Anonymous)
+	assert.Equal(t, 2, len(r.Files))
+	assert.Equal(t, "123", r.Files[0].ID)
+	assert.Equal(t, "Test Description", r.Files[0].Description)
+	assert.Equal(t, "http://example.url", r.URL)
+	assert.Equal(t, "test-key", r.Auth.APIKey)
+}
+
+func TestPD_RequestGetList(t *testing.T) {
+	r := &pd.RequestGetList{
+		ID:   "123",
+		URL:  "http://example.url",
+		Auth: pd.Auth{APIKey: "test-key"},
+	}
+
+	assert.Equal(t, "123", r.ID)
+	assert.Equal(t, "http://example.url", r.URL)
+	assert.Equal(t, "test-key", r.Auth.APIKey)
+}
+
+func TestPD_RequestGetUserFiles(t *testing.T) {
+	r := &pd.RequestGetUserFiles{
+		URL:  "http://example.url",
+		Auth: pd.Auth{APIKey: "test-key"},
+	}
+
+	assert.Equal(t, "http://example.url", r.URL)
+	assert.Equal(t, "test-key", r.Auth.APIKey)
+}
+
+func TestPD_RequestGetUserLists(t *testing.T) {
+	r := &pd.RequestGetUserLists{
+		URL:  "http://example.url",
+		Auth: pd.Auth{APIKey: "test-key"},
+	}
+
+	assert.Equal(t, "http://example.url", r.URL)
+	assert.Equal(t, "test-key", r.Auth.APIKey)
+}

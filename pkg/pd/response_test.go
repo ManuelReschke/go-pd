@@ -71,3 +71,31 @@ func TestPD_ResponseThumbnail(t *testing.T) {
 	assert.Equal(t, int64(123123), rsp.FileSize)
 	assert.Equal(t, "/my/path/thumbnail.jpg", rsp.FilePath)
 }
+
+func TestPD_ResponseDelete(t *testing.T) {
+	rsp := &pd.ResponseDelete{}
+	rsp.StatusCode = 200
+	rsp.Success = true
+	rsp.Value = "test"
+	rsp.Message = "test message"
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "test", rsp.Value)
+	assert.Equal(t, "test message", rsp.Message)
+}
+
+func TestPD_ResponseCreateList(t *testing.T) {
+	rsp := &pd.ResponseCreateList{}
+	rsp.StatusCode = 200
+	rsp.Success = true
+	rsp.Value = "test"
+	rsp.Message = "test message"
+	rsp.ID = "123"
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "test", rsp.Value)
+	assert.Equal(t, "test message", rsp.Message)
+	assert.Equal(t, "123", rsp.ID)
+}

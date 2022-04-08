@@ -129,6 +129,51 @@ func MockFileUploadServer() *httptest.Server {
 				w.Write(fileContent)
 			}
 
+			// ##########################################
+			// GET /list/{id}
+			if r.URL.EscapedPath() == "/list/123" {
+				_ = r.ParseForm()
+
+				w.WriteHeader(http.StatusOK)
+				str := `{
+				  "success": true,
+				  "id": "123",
+				  "title": "Rust in Peace",
+				  "date_created": "2020-02-04T18:34:13.466276Z",
+				  "files": [
+					{
+					  "detail_href": "/file/_SqVWi/info",
+					  "description": "",
+					  "success": true,
+					  "id": "_SqVWi",
+					  "name": "01 Holy Wars... The Punishment Due.mp3",
+					  "size": 123456,
+					  "date_created": "2020-02-04T18:34:13.466276Z",
+					  "date_last_view": "2020-02-04T18:34:13.466276Z",
+					  "mime_type": "audio/mp3",
+					  "views": 1,
+					  "bandwidth_used": 1234567890,
+					  "thumbnail_href": "/file/_SqVWi/thumbnail"
+					},
+					{
+					  "detail_href": "/file/RKwgZb/info",
+					  "description": "",
+					  "success": true,
+					  "id": "RKwgZb",
+					  "name": "02 Hangar 18.mp3",
+					  "size": 123456,
+					  "date_created": "2020-02-04T18:34:13.466276Z",
+					  "date_last_view": "2020-02-04T18:34:13.466276Z",
+					  "mime_type": "audio/mp3",
+					  "views": 2,
+					  "bandwidth_used": 1234567890,
+					  "thumbnail_href": "/file/RKwgZb/thumbnail"
+					}
+				  ]
+				}`
+				_, _ = w.Write([]byte(str))
+			}
+
 			return
 		case "DELETE":
 			// ##########################################

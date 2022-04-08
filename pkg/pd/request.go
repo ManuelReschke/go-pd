@@ -67,16 +67,36 @@ type RequestDelete struct {
 	URL  string
 }
 
-// RequestCreateList create new list
+// RequestCreateList parameters for creating new list
 type RequestCreateList struct {
-	Title     string                  `json:"title"`
-	Anonymous bool                    `json:"anonymous"`
-	Files     []RequestCreateListFile `json:"files"`
+	Title     string     `json:"title"`
+	Anonymous bool       `json:"anonymous"`
+	Files     []ListFile `json:"files"`
 	Auth      Auth
 	URL       string
 }
 
-type RequestCreateListFile struct {
+// ListFile a file inside a CreateList request
+type ListFile struct {
 	ID          string `json:"id"`
 	Description string `json:"description"`
+}
+
+// RequestGetList request to a retrieve a list
+type RequestGetList struct {
+	ID   string `json:"id"`
+	Auth Auth
+	URL  string
+}
+
+// RequestGetUserFiles ...
+type RequestGetUserFiles struct {
+	Auth Auth
+	URL  string
+}
+
+// RequestGetUserLists ...
+type RequestGetUserLists struct {
+	Auth Auth
+	URL  string
 }

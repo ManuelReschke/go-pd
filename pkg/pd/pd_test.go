@@ -304,14 +304,14 @@ func TestPD_Delete_Integration(t *testing.T) {
 	assert.Equal(t, "The entity you requested could not be found", rsp.Message)
 }
 
-// TestPD_Delete_Integration run a real integration test against the service
+// TestPD_CreateList is a unit test for the POST "list" method
 func TestPD_CreateList(t *testing.T) {
 	server := pd.MockFileUploadServer()
 	defer server.Close()
 	testURL := server.URL + "/list"
 
 	// files to add
-	files := []pd.RequestCreateListFile{
+	files := []pd.ListFile{
 		{ID: "K1dA8U5W", Description: "Hallo Welt"},
 		{ID: "bmrc4iyD", Description: "Hallo Welt 2"},
 	}
@@ -344,7 +344,7 @@ func TestPD_CreateList_Integration(t *testing.T) {
 	}
 
 	// files to add
-	files := []pd.RequestCreateListFile{
+	files := []pd.ListFile{
 		{ID: "123456", Description: "Hallo Welt"},
 		{ID: "678900", Description: "Hallo Welt 2"},
 	}
@@ -368,6 +368,53 @@ func TestPD_CreateList_Integration(t *testing.T) {
 	assert.Equal(t, false, rsp.Success)
 	assert.Equal(t, "list_file_not_found", rsp.Value)
 	assert.Equal(t, "File was not found in the database", rsp.Message)
+}
+
+// TestPD_GetList is a unit test for the GET "list/{id}" method
+func TestPD_GetList(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/list/123"
+
+	req := &pd.RequestGetList{
+		ID:  "123",
+		URL: testURL,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.GetList(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.NotEmpty(t, rsp.ID)
+	assert.Equal(t, "Rust in Peace", rsp.Title)
+	assert.Equal(t, 123456, rsp.Files[0].Size)
+}
+
+// TestPD_GetList run a real integration test against the service
+func TestPD_GetList_Integration(t *testing.T) {
+	req := &pd.RequestGetList{
+		ID: "Cap4T1LP",
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.GetList(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.NotEmpty(t, rsp.ID)
+	assert.Equal(t, "Test List", rsp.Title)
+	assert.Equal(t, 37621, rsp.Files[0].Size)
 }
 
 func setAuthFromEnv() pd.Auth {

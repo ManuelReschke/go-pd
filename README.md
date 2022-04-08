@@ -113,7 +113,7 @@ func main() {
   - [x] implement GET - /file/{id}/thumbnail?width=x&height=x
   - [x] implement DELETE - /file/{id}
   - [x] implement POST - /list
-  - [ ] implement GET - /list/{id}
+  - [X] implement GET - /list/{id}
   - [ ] implement POST - /user/files
   - [ ] implement GET - /user/lists
 - [ ] create CLI tool for uploading to pixeldrain.com
@@ -134,7 +134,7 @@ func main() {
 | PixelDrain Call      |  Package Func |
 |----------------------|---|
 | [x] POST - /list     | CreateList(r *RequestCreateList) (*ResponseCreateList, error)  |
-| [ ] GET - /list/{id} | -  |
+| [x] GET - /list/{id} | GetList(r *RequestGetList) (*ResponseGetList, error)  |
 ### User Methods
 | PixelDrain Call        |  Package Func |
 |------------------------|---|
