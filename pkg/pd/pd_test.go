@@ -398,6 +398,10 @@ func TestPD_GetList(t *testing.T) {
 
 // TestPD_GetList_Integration run a real integration test against the service
 func TestPD_GetList_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(SkipIntegrationTest)
+	}
+
 	req := &pd.RequestGetList{
 		ID: "Cap4T1LP",
 	}
@@ -443,6 +447,10 @@ func TestPD_GetUserFiles(t *testing.T) {
 
 // TestPD_GetUserFiles_Integration run a real integration test against the service
 func TestPD_GetUserFiles_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(SkipIntegrationTest)
+	}
+
 	req := &pd.RequestGetUserFiles{}
 
 	req.Auth = setAuthFromEnv()
@@ -483,6 +491,10 @@ func TestPD_GetUserLists(t *testing.T) {
 
 // TestPD_GetUserLists_Integration run a real integration test against the service
 func TestPD_GetUserLists_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(SkipIntegrationTest)
+	}
+
 	req := &pd.RequestGetUserLists{}
 
 	req.Auth = setAuthFromEnv()
