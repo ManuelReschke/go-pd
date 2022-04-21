@@ -2,6 +2,7 @@ package pd_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -98,4 +99,64 @@ func TestPD_ResponseCreateList(t *testing.T) {
 	assert.Equal(t, "test", rsp.Value)
 	assert.Equal(t, "test message", rsp.Message)
 	assert.Equal(t, "123", rsp.ID)
+}
+
+func TestPD_ResponseGetList(t *testing.T) {
+	rsp := &pd.ResponseGetList{}
+	rsp.StatusCode = 200
+	rsp.Success = true
+	rsp.Value = "test"
+	rsp.Message = "test message"
+	rsp.ID = "123"
+	rsp.Title = "Test Title"
+	layout := "2014-09-12T11:45:26.371Z"
+	timeStr := "2020-02-04T18:34:13.466276Z"
+	rsp.DateCreated, _ = time.Parse(layout, timeStr)
+	//@todo
+	rsp.Files = []pd.FileGetList{{
+		DetailHref:    "",
+		Description:   "",
+		Success:       false,
+		ID:            "",
+		Name:          "",
+		Size:          0,
+		DateCreated:   time.Time{},
+		DateLastView:  time.Time{},
+		MimeType:      "",
+		Views:         0,
+		BandwidthUsed: 0,
+		ThumbnailHref: "",
+	}}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "test", rsp.Value)
+	assert.Equal(t, "test message", rsp.Message)
+	assert.Equal(t, "123", rsp.ID)
+}
+
+func TestPD_ResponseGetUserFiles(t *testing.T) {
+	rsp := &pd.ResponseGetUserFiles{}
+	rsp.StatusCode = 200
+	rsp.Success = true
+	rsp.Value = "test"
+	rsp.Message = "test message"
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "test", rsp.Value)
+	assert.Equal(t, "test message", rsp.Message)
+}
+
+func TestPD_ResponseGetUserLists(t *testing.T) {
+	rsp := &pd.ResponseGetUserLists{}
+	rsp.StatusCode = 200
+	rsp.Success = true
+	rsp.Value = "test"
+	rsp.Message = "test message"
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "test", rsp.Value)
+	assert.Equal(t, "test message", rsp.Message)
 }

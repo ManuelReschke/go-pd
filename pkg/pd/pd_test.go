@@ -396,7 +396,7 @@ func TestPD_GetList(t *testing.T) {
 	assert.Equal(t, 123456, rsp.Files[0].Size)
 }
 
-// TestPD_GetList run a real integration test against the service
+// TestPD_GetList_Integration run a real integration test against the service
 func TestPD_GetList_Integration(t *testing.T) {
 	req := &pd.RequestGetList{
 		ID: "Cap4T1LP",
@@ -415,6 +415,87 @@ func TestPD_GetList_Integration(t *testing.T) {
 	assert.NotEmpty(t, rsp.ID)
 	assert.Equal(t, "Test List", rsp.Title)
 	assert.Equal(t, 37621, rsp.Files[0].Size)
+}
+
+// TestPD_GetUserFiles is a unit test for the GET "/user/files" method
+func TestPD_GetUserFiles(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/user/files"
+
+	req := &pd.RequestGetUserFiles{
+		URL: testURL,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.GetUserFiles(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "tUxgDCoQ", rsp.Files[0].ID)
+	assert.Equal(t, "test_post_cat.jpg", rsp.Files[0].Name)
+}
+
+// TestPD_GetUserFiles_Integration run a real integration test against the service
+func TestPD_GetUserFiles_Integration(t *testing.T) {
+	req := &pd.RequestGetUserFiles{}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.GetUserFiles(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "tUxgDCoQ", rsp.Files[0].ID)
+}
+
+// TestPD_GetUserLists is a unit test for the GET "/user/files" method
+func TestPD_GetUserLists(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/user/lists"
+
+	req := &pd.RequestGetUserLists{
+		URL: testURL,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.GetUserLists(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "Test List", rsp.Lists[0].Title)
+}
+
+// TestPD_GetUserLists_Integration run a real integration test against the service
+func TestPD_GetUserLists_Integration(t *testing.T) {
+	req := &pd.RequestGetUserLists{}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.GetUserLists(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "Test List", rsp.Lists[0].Title)
 }
 
 func setAuthFromEnv() pd.Auth {

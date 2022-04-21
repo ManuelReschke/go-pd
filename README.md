@@ -114,8 +114,8 @@ func main() {
   - [x] implement DELETE - /file/{id}
   - [x] implement POST - /list
   - [X] implement GET - /list/{id}
-  - [ ] implement POST - /user/files
-  - [ ] implement GET - /user/lists
+  - [x] implement GET - /user/files
+  - [x] implement GET - /user/lists
 - [ ] create CLI tool for uploading to pixeldrain.com
 - [ ] refactor the hole shit and use nice to have patterns (like Option Pattern)
 
@@ -138,8 +138,8 @@ func main() {
 ### User Methods
 | PixelDrain Call        |  Package Func |
 |------------------------|---|
-| [ ] POST - /user/files | -  |
-| [ ] GET - /user/lists  | -  |
+| [x] POST - /user/files | GetUserFiles(r *RequestGetUserFiles) (*ResponseGetUserFiles, error)  |
+| [x] GET - /user/lists  | GetUserLists(r *RequestGetUserLists) (*ResponseGetUserLists, error)  |
 
 ## Package CLI commands
 
@@ -149,10 +149,16 @@ Run unit tests against a local emulated server.
 make test
 ```
 
-### Integration Tests - Run pkg unit tests
+### Integration Tests - Run pkg integration tests
 Run real integration tests against the real pixeldrain.com website.
 ```shell
 make test-integration
+```
+
+### Test Coverage - create test coverage report
+Create a coverage report c.out and a coverage.html to view the results in web browser
+```shell
+make coverage
 ```
 
 ## License

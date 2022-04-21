@@ -386,6 +386,7 @@ func (pd *PixelDrainClient) CreateList(r *RequestCreateList) (*ResponseCreateLis
 	return rspStruct, nil
 }
 
+// GetList GET /api/list/{id}
 func (pd *PixelDrainClient) GetList(r *RequestGetList) (*ResponseGetList, error) {
 	if r.ID == "" {
 		return nil, errors.New(ErrMissingFileID)
@@ -414,6 +415,78 @@ func (pd *PixelDrainClient) GetList(r *RequestGetList) (*ResponseGetList, error)
 		return nil, err
 	}
 
+	rspStruct.StatusCode = rsp.Response().StatusCode
+
+	return rspStruct, nil
+}
+
+// GetUserFiles GET /api/user/files
+func (pd *PixelDrainClient) GetUserFiles(r *RequestGetUserFiles) (*ResponseGetUserFiles, error) {
+	if r.URL == "" {
+		r.URL = APIURL + "/user/files"
+	}
+
+	// pixeldrain want an empty username and the APIKey as password
+	if r.Auth.IsAuthAvailable() {
+		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+	}
+
+	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header)
+	if pd.Debug {
+		log.Println(rsp.Dump())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	rspStruct := &ResponseGetUserFiles{}
+	err = rsp.ToJSON(rspStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	status := false
+	if rsp.Response().StatusCode == http.StatusOK {
+		status = true
+	}
+
+	rspStruct.Success = status
+	rspStruct.StatusCode = rsp.Response().StatusCode
+
+	return rspStruct, nil
+}
+
+// GetUserLists GET /api/user/lists
+func (pd *PixelDrainClient) GetUserLists(r *RequestGetUserLists) (*ResponseGetUserLists, error) {
+	if r.URL == "" {
+		r.URL = APIURL + "/user/lists"
+	}
+
+	// pixeldrain want an empty username and the APIKey as password
+	if r.Auth.IsAuthAvailable() {
+		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+	}
+
+	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header)
+	if pd.Debug {
+		log.Println(rsp.Dump())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	rspStruct := &ResponseGetUserLists{}
+	err = rsp.ToJSON(rspStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	status := false
+	if rsp.Response().StatusCode == http.StatusOK {
+		status = true
+	}
+
+	rspStruct.Success = status
 	rspStruct.StatusCode = rsp.Response().StatusCode
 
 	return rspStruct, nil

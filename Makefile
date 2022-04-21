@@ -13,6 +13,11 @@ test-integration: ## run all integration test
 	go test ./... -v -run Integration
 .PHONY: test-integration
 
+coverage: ## create coverage report with go get golang.org/x/tools/cmd/cover
+	go test -cover -coverprofile=c.out ./...
+	go tool cover -html=c.out -o coverage.html
+.PHONY: coverage
+
 fmt: ## format the go source files
 	go fmt ./...
 .PHONY: fmt
