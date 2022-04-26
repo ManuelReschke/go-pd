@@ -1,7 +1,7 @@
 package main
 
-import "github.com/ManuelReschke/go-pd/pkg/pd"
+import "github.com/ManuelReschke/go-pd/cmd"
 
 func main() {
-	println("Work in Progress a new " + pd.Name + " client is born!")
+	cmd.Execute()
 }

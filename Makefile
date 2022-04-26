@@ -23,5 +23,7 @@ fmt: ## format the go source files
 .PHONY: fmt
 
 build:
-	go build -o bin/go-pd
+	env GOOS=linux GOARCH=amd64 go build -o bin/linux/go-pd
+	env GOOS=linux GOARCH=arm64 go build -o bin/arm/go-pd
+	env GOOS=windows GOARCH=amd64 go build -o bin/windows/go-pd.exe
 .PHONY: build

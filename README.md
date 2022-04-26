@@ -4,24 +4,69 @@
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/ManuelReschke/go-pd)
 ![GitHub top language](https://img.shields.io/github/languages/top/ManuelReschke/go-pd)
 
-# Go-PD - Another pixeldrain.com client
+# Go-PD - A pixeldrain.com client pkg and CLI tool
 
-A free pixeldrain.com client written in go. We use the super power from [imroc/req](https://github.com/imroc/req) (v0.3.2) to build a robust and fast pixeldrain client.
+![Go-PD](logo.jpg)
 
-## Why?
+A free pixeldrain.com client written in go. We use the super power from [imroc/req](https://github.com/imroc/req) (v0.3.2) to build a robust and fast pixeldrain client and [cobra](https://github.com/spf13/cobra) for our CLI tool.
 
-Because we want a simple, fast, robust and 100% tested go package to upload to pixeldrain.com.
+## Content:
+- [Using the CLI tool](#cli-tool)
+  - [CLI Tool: Download latest binary](#download)
+  - [CLI Tool: Upload a file](#cli-tool-upload-a-file)
+- [Using the client pkg](#client-pkg)
+  - [Why?](#why)
+  - [Import pkg](#import-the-pkg)
+  - [Example 1 - the easiest way to upload an anonymous file](#example-1---the-easiest-way-to-upload-an-anonymous-file)
+  - [Example 2 - advanced way to upload a file to user account](#example-2---advanced-way-to-upload-a-file-to-user-account)
+- [ToDo's](#todos)
+- [Covered methods](#pixeldrain-methods-covered-by-this-package)
+- [License](#license)
 
-### Import the pkg / lib (Go < v1.7)
+<a name="cli-tool"></a>
+# Using the CLI tool
+
+<a name="download"></a>
+## CLI Tool: Download latest binary
+
+Follow the link to download the correct bnary for your system. [Linux (64Bit)](https://github.com/ManuelReschke/go-pd/raw/main/bin/linux/go-pd) | [ARM (64Bit)](https://github.com/ManuelReschke/go-pd/raw/main/bin/arm/go-pd) | [Windows (64Bit)](https://github.com/ManuelReschke/go-pd/raw/main/bin/windows/go-pd.exe)
+
+## CLI Tool: Upload a file
+
+Go to the folder where you download the binary file and run the following command in a CLI.
+
+**Simple upload:**
+
+```
+ ./go-pd upload my-cat.jpg
+ 
+ Output:
+ https://pixeldrain.com/u/aaaaaaaa
+```
+
+**Upload to your account (-verbose):**
+
+```
+ ./go-pd upload -k <your-api-key> -v my-cat.jpg my-cat2.jpg
+ 
+ Output:
+ Successful! Anonymous upload: false | ID: xBxxxxxx | URL: https://pixeldrain.com/u/xBxxxxxx
+ Successful! Anonymous upload: false | ID: xAxxxxxx | URL: https://pixeldrain.com/u/xAxxxxxx
+```
+
+<a name="client-pkg"></a>
+# Using the client pkg
+
+<a name="why"></a>
+## Why the package?
+
+Because we want a simple, fast, robust and tested go package to upload to pixeldrain.com.
+
+<a name="import-the-pkg"></a>
+### Import the pkg
 
 ```
  go get github.com/ManuelReschke/go-pd/pkg/pd
-```
-
-### Import the pkg / lib (Go > v1.7)
-
-```
- go install github.com/ManuelReschke/go-pd/pkg/pd
 ```
 
 ## Example 1 - the easiest way to upload an anonymous file
@@ -107,7 +152,7 @@ func main() {
 - [x] write unit tests
 - [x] write integration tests
 - [x] add API-KEY auth to requests
-- [ ] implement all other API methods
+- [x] implement all other API methods
   - [x] implement GET - /file/{id}
   - [x] implement GET - /file/{id}/info
   - [x] implement GET - /file/{id}/thumbnail?width=x&height=x
@@ -116,7 +161,7 @@ func main() {
   - [X] implement GET - /list/{id}
   - [x] implement GET - /user/files
   - [x] implement GET - /user/lists
-- [ ] create CLI tool for uploading to pixeldrain.com
+- [x] create CLI tool for uploading to pixeldrain.com
 - [ ] refactor the hole shit and use nice to have patterns (like Option Pattern)
 
 ## PixelDrain methods covered by this package
