@@ -163,6 +163,7 @@ func main() {
   - [x] implement GET - /user/lists
 - [x] create CLI tool for uploading to pixeldrain.com
 - [ ] refactor the hole shit and use nice to have patterns (like Option Pattern)
+- [ ] update imroc/req to the latest version
 
 ## PixelDrain methods covered by this package
 
@@ -205,6 +206,9 @@ Create a coverage report c.out and a coverage.html to view the results in web br
 ```shell
 make coverage
 ```
+
+## Thanks to 
+Special thanks to Visual Studio Code and to Jetbrains for this amazing IDE and [supporting the open source community](https://www.jetbrains.com/de-de/community/opensource/#support).
 
 ## License
 
