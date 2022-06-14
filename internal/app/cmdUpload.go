@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-func Run(cmd *cobra.Command, args []string) error {
+func RunUpload(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return errors.New("please add a file to your upload request")
 	}
