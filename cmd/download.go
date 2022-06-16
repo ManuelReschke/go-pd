@@ -22,6 +22,7 @@ var downloadCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(downloadCmd)
+	downloadCmd.Flags().StringP("path", "p", "", "Path where the files are stored")
 	downloadCmd.Flags().StringP("api-key", "k", "", "Auth key for authentication")
 	downloadCmd.Flags().BoolP("verbose", "v", true, "Show more information after an upload (Anonymous, ID, URL)")
 }
