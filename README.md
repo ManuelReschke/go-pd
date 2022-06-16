@@ -10,6 +10,8 @@
 
 A free pixeldrain.com client written in go. We use the super power from [imroc/req](https://github.com/imroc/req) (v0.3.2) to build a robust and fast pixeldrain client and [cobra](https://github.com/spf13/cobra) for our CLI tool.
 
+![Go-PD](go-pd-upload-and-download.gif)
+
 ## Content:
 - [Using the CLI tool](#cli-tool)
   - [CLI Tool: Install](#cli-tool-install)
