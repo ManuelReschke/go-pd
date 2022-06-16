@@ -12,7 +12,7 @@ A free pixeldrain.com client written in go. We use the super power from [imroc/r
 
 ## Content:
 - [Using the CLI tool](#cli-tool)
-  - [CLI Tool: Download latest binary](#download)
+  - [CLI Tool: Install](#cli-tool-install)
   - [CLI Tool: Upload a file](#cli-tool-upload-a-file)
   - [CLI Tool: Download a file](#cli-tool-download-a-file)
 - [Using the client pkg](#client-pkg)
@@ -27,7 +27,6 @@ A free pixeldrain.com client written in go. We use the super power from [imroc/r
 <a name="cli-tool"></a>
 # Using the CLI tool
 
-<a name="download"></a>
 ## CLI Tool: Install
 
 Follow the link to download the correct binary for your system. [View Releases](https://github.com/ManuelReschke/go-pd/releases). It's available for Linux, ARM and Windows.
