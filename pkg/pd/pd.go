@@ -203,6 +203,23 @@ func (pd *PixelDrainClient) Download(r *RequestDownload) (*ResponseDownload, err
 		return nil, err
 	}
 
+	if rsp.Response().StatusCode != 200 {
+		defaultRsp := &ResponseDefault{}
+		err = rsp.ToJSON(defaultRsp)
+		if err != nil {
+			return nil, err
+		}
+
+		defaultRsp.StatusCode = rsp.Response().StatusCode
+		defaultRsp.Success = false
+
+		downloadRsp := &ResponseDownload{
+			ResponseDefault: *defaultRsp,
+		}
+
+		return downloadRsp, nil
+	}
+
 	err = rsp.ToFile(r.PathToSave)
 	if err != nil {
 		return nil, err

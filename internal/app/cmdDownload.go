@@ -62,10 +62,14 @@ func RunDownload(cmd *cobra.Command, args []string) error {
 		}
 
 		msg := ""
-		if cmd.Flags().Changed("verbose") {
-			msg = fmt.Sprintf("Successful! Download complete: %s | ID: %s | Stored to: %s", rspDL.FileName, req.ID, req.PathToSave)
+		if rspDL.Success {
+			if cmd.Flags().Changed("verbose") {
+				msg = fmt.Sprintf("Successful! Download complete: %s | ID: %s | Stored to: %s", rspDL.FileName, req.ID, req.PathToSave)
+			} else {
+				msg = fmt.Sprintf("%s", req.PathToSave)
+			}
 		} else {
-			msg = fmt.Sprintf("%s", req.PathToSave)
+			msg = fmt.Sprintf("Failed! ID: %s | Value: %s | Message: %s", req.ID, rspDL.Value, rspDL.Message)
 		}
 
 		fmt.Println(msg)
