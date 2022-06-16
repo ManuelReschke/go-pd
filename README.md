@@ -28,9 +28,10 @@ A free pixeldrain.com client written in go. We use the super power from [imroc/r
 # Using the CLI tool
 
 <a name="download"></a>
-## CLI Tool: Download latest binary
+## CLI Tool: Install
 
-Follow the link to download the correct bnary for your system. [Linux (64Bit)](https://github.com/ManuelReschke/go-pd/raw/main/bin/linux/go-pd) | [ARM (64Bit)](https://github.com/ManuelReschke/go-pd/raw/main/bin/arm/go-pd) | [Windows (64Bit)](https://github.com/ManuelReschke/go-pd/raw/main/bin/windows/go-pd.exe)
+Follow the link to download the correct binary for your system. [View Releases](https://github.com/ManuelReschke/go-pd/releases). It's available for Linux, ARM and Windows.
+Download the correct archive, extract it and use the binary.
 
 ## CLI Tool: Upload a file
 
@@ -71,7 +72,7 @@ Go to the folder where you download the binary file and run the following comman
 **Download multiple files to a specific path (-verbose):**
 
 ```
- ./go-pd upload -k <your-api-key> -p /home/pixeldrain/pictures/ YqiUjXXX YqiUjX02 YqiUjX03
+ ./go-pd download -k <your-api-key> -p /home/pixeldrain/pictures/ YqiUjXXX YqiUjX02 YqiUjX03
  
  Output:
  Successful! Download complete: filename01.jpg | ID: xBxxxxxx | Stored to: /home/pixeldrain/pictures/filename01.jpg
