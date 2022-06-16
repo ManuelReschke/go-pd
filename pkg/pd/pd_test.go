@@ -11,6 +11,10 @@ import (
 
 const SkipIntegrationTest = "skipping integration test"
 
+var fileIDPost string
+var fileIDPut string
+var listID string
+
 // TestPD_UploadPOST is a unit test for the POST upload method
 func TestPD_UploadPOST(t *testing.T) {
 	server := pd.MockFileUploadServer()
@@ -57,6 +61,7 @@ func TestPD_UploadPOST_Integration(t *testing.T) {
 
 	assert.Equal(t, 201, rsp.StatusCode)
 	assert.NotEmpty(t, rsp.ID)
+	fileIDPost = rsp.ID
 	fmt.Println("POST Req: " + rsp.GetFileURL())
 }
 
@@ -106,6 +111,7 @@ func TestPD_UploadPUT_Integration(t *testing.T) {
 
 	assert.Equal(t, 201, rsp.StatusCode)
 	assert.NotEmpty(t, rsp.ID)
+	fileIDPut = rsp.ID
 	fmt.Println("PUT Req: " + rsp.GetFileURL())
 }
 
@@ -139,7 +145,7 @@ func TestPD_Download_Integration(t *testing.T) {
 
 	req := &pd.RequestDownload{
 		PathToSave: "testdata/cat_download.jpg",
-		ID:         "K1dA8U5W",
+		ID:         fileIDPost,
 	}
 
 	req.Auth = setAuthFromEnv()
@@ -186,7 +192,7 @@ func TestPD_GetFileInfo_Integration(t *testing.T) {
 	}
 
 	req := &pd.RequestFileInfo{
-		ID: "K1dA8U5W",
+		ID: fileIDPost,
 	}
 
 	req.Auth = setAuthFromEnv()
@@ -199,7 +205,7 @@ func TestPD_GetFileInfo_Integration(t *testing.T) {
 
 	assert.Equal(t, 200, rsp.StatusCode)
 	assert.Equal(t, true, rsp.Success)
-	assert.Equal(t, "K1dA8U5W", rsp.ID)
+	assert.Equal(t, fileIDPost, rsp.ID)
 	assert.Equal(t, 37621, rsp.Size)
 	assert.Equal(t, "1af93d68009bdfd52e1da100a019a30b5fe083d2d1130919225ad0fd3d1fed0b", rsp.HashSha256)
 }
@@ -238,7 +244,7 @@ func TestPD_DownloadThumbnail_Integration(t *testing.T) {
 	}
 
 	req := &pd.RequestThumbnail{
-		ID:         "K1dA8U5W",
+		ID:         fileIDPost,
 		Height:     "64",
 		Width:      "64",
 		PathToSave: "testdata/cat_download_thumbnail.jpg",
@@ -255,53 +261,6 @@ func TestPD_DownloadThumbnail_Integration(t *testing.T) {
 	assert.Equal(t, 200, rsp.StatusCode)
 	assert.Equal(t, "cat_download_thumbnail.jpg", rsp.FileName)
 	assert.Equal(t, int64(7056), rsp.FileSize)
-}
-
-// TestPD_Delete is a unit test for the DELETE "delete" method
-func TestPD_Delete(t *testing.T) {
-	server := pd.MockFileUploadServer()
-	defer server.Close()
-	testURL := server.URL + "/file/K1dA8U5W"
-
-	req := &pd.RequestDelete{
-		ID:  "K1dA8U5W",
-		URL: testURL,
-	}
-
-	req.Auth = setAuthFromEnv()
-
-	c := pd.New(nil, nil)
-	rsp, err := c.Delete(req)
-	if err != nil {
-		t.Error(err)
-	}
-
-	assert.Equal(t, true, rsp.Success)
-	assert.Equal(t, "file_deleted", rsp.Value)
-	assert.Equal(t, "The file has been deleted.", rsp.Message)
-}
-
-// TestPD_Delete_Integration run a real integration test against the service
-func TestPD_Delete_Integration(t *testing.T) {
-	if testing.Short() {
-		t.Skip(SkipIntegrationTest)
-	}
-
-	req := &pd.RequestDelete{
-		ID: "123", // K1dA8U5W
-	}
-
-	req.Auth = setAuthFromEnv()
-
-	c := pd.New(nil, nil)
-	rsp, err := c.Delete(req)
-	if err != nil {
-		t.Error(err)
-	}
-
-	assert.Equal(t, false, rsp.Success)
-	assert.Equal(t, "not_found", rsp.Value)
-	assert.Equal(t, "The entity you requested could not be found", rsp.Message)
 }
 
 // TestPD_CreateList is a unit test for the POST "list" method
@@ -345,8 +304,8 @@ func TestPD_CreateList_Integration(t *testing.T) {
 
 	// files to add
 	files := []pd.ListFile{
-		{ID: "123456", Description: "Hallo Welt"},
-		{ID: "678900", Description: "Hallo Welt 2"},
+		{ID: fileIDPost, Description: "Hallo Welt"},
+		{ID: fileIDPut, Description: "Hallo Welt 2"},
 	}
 
 	// create list request
@@ -364,10 +323,9 @@ func TestPD_CreateList_Integration(t *testing.T) {
 		t.Error(err)
 	}
 
-	assert.Equal(t, 422, rsp.StatusCode)
-	assert.Equal(t, false, rsp.Success)
-	assert.Equal(t, "list_file_not_found", rsp.Value)
-	assert.Equal(t, "File was not found in the database", rsp.Message)
+	assert.Equal(t, 201, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	listID = rsp.ID
 }
 
 // TestPD_GetList is a unit test for the GET "list/{id}" method
@@ -403,7 +361,7 @@ func TestPD_GetList_Integration(t *testing.T) {
 	}
 
 	req := &pd.RequestGetList{
-		ID: "Cap4T1LP",
+		ID: listID,
 	}
 
 	req.Auth = setAuthFromEnv()
@@ -463,7 +421,11 @@ func TestPD_GetUserFiles_Integration(t *testing.T) {
 
 	assert.Equal(t, 200, rsp.StatusCode)
 	assert.Equal(t, true, rsp.Success)
-	assert.Equal(t, "tUxgDCoQ", rsp.Files[0].ID)
+	if rsp.Files[0].ID == fileIDPost {
+		assert.Equal(t, fileIDPost, rsp.Files[0].ID)
+	} else {
+		assert.Equal(t, fileIDPut, rsp.Files[0].ID)
+	}
 }
 
 // TestPD_GetUserLists is a unit test for the GET "/user/files" method
@@ -508,6 +470,69 @@ func TestPD_GetUserLists_Integration(t *testing.T) {
 	assert.Equal(t, 200, rsp.StatusCode)
 	assert.Equal(t, true, rsp.Success)
 	assert.Equal(t, "Test List", rsp.Lists[0].Title)
+}
+
+// TestPD_Delete is a unit test for the DELETE "delete" method
+func TestPD_Delete(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/file/K1dA8U5W"
+
+	req := &pd.RequestDelete{
+		ID:  "K1dA8U5W",
+		URL: testURL,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.Delete(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "file_deleted", rsp.Value)
+	assert.Equal(t, "The file has been deleted.", rsp.Message)
+}
+
+// TestPD_Delete_Integration run a real integration test against the service
+func TestPD_Delete_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(SkipIntegrationTest)
+	}
+
+	req := &pd.RequestDelete{
+		ID: fileIDPost,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.Delete(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "ok", rsp.Value)
+	assert.Equal(t, "The requested action was successfully performed", rsp.Message)
+
+	req = &pd.RequestDelete{
+		ID: fileIDPut,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c = pd.New(nil, nil)
+	rsp, err = c.Delete(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "ok", rsp.Value)
+	assert.Equal(t, "The requested action was successfully performed", rsp.Message)
 }
 
 func setAuthFromEnv() pd.Auth {

@@ -14,6 +14,7 @@ A free pixeldrain.com client written in go. We use the super power from [imroc/r
 - [Using the CLI tool](#cli-tool)
   - [CLI Tool: Download latest binary](#download)
   - [CLI Tool: Upload a file](#cli-tool-upload-a-file)
+  - [CLI Tool: Download a file](#cli-tool-download-a-file)
 - [Using the client pkg](#client-pkg)
   - [Why?](#why)
   - [Import pkg](#import-the-pkg)
@@ -52,6 +53,30 @@ Go to the folder where you download the binary file and run the following comman
  Output:
  Successful! Anonymous upload: false | ID: xBxxxxxx | URL: https://pixeldrain.com/u/xBxxxxxx
  Successful! Anonymous upload: false | ID: xAxxxxxx | URL: https://pixeldrain.com/u/xAxxxxxx
+```
+
+## CLI Tool: Download a file
+
+Go to the folder where you download the binary file and run the following command in a CLI.
+
+**Simple download:**
+
+```
+ ./go-pd download https://pixeldrain.com/u/YqiUjXXX
+ 
+ Output:
+ /the/path/to/your/file
+```
+
+**Download multiple files to a specific path (-verbose):**
+
+```
+ ./go-pd upload -k <your-api-key> -p /home/pixeldrain/pictures/ YqiUjXXX YqiUjX02 YqiUjX03
+ 
+ Output:
+ Successful! Download complete: filename01.jpg | ID: xBxxxxxx | Stored to: /home/pixeldrain/pictures/filename01.jpg
+ Successful! Download complete: filename02.jpg | ID: xBxxxxxx | Stored to: /home/pixeldrain/pictures/filename02.jpg
+ Successful! Download complete: filename03.jpg | ID: xBxxxxxx | Stored to: /home/pixeldrain/pictures/filename03.jpg
 ```
 
 <a name="client-pkg"></a>
@@ -163,6 +188,7 @@ func main() {
   - [x] implement GET - /user/lists
 - [x] create CLI tool for uploading to pixeldrain.com
 - [ ] refactor the hole shit and use nice to have patterns (like Option Pattern)
+- [ ] update imroc/req to the latest version
 
 ## PixelDrain methods covered by this package
 
@@ -205,6 +231,9 @@ Create a coverage report c.out and a coverage.html to view the results in web br
 ```shell
 make coverage
 ```
+
+## Thanks to 
+Special thanks to Visual Studio Code and to Jetbrains for this amazing IDE and [supporting the open source community](https://www.jetbrains.com/de-de/community/opensource/#support).
 
 ## License
 

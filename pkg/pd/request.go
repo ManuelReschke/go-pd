@@ -37,7 +37,6 @@ func (r *RequestUpload) GetFileName() string {
 // RequestDownload container for the file download
 type RequestDownload struct {
 	ID         string
-	Download   bool
 	PathToSave string
 	Auth       Auth
 	URL        string // specific the API endpoint, is set by default with the correct values

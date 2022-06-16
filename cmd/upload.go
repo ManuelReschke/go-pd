@@ -17,7 +17,7 @@ var uploadCmd = &cobra.Command{
 	Use:   cmdUploadUse,
 	Short: cmdUploadShort,
 	Long:  cmdUploadLong,
-	RunE:  app.Run,
+	RunE:  app.RunUpload,
 }
 
 func init() {
