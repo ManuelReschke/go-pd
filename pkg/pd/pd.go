@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -19,8 +20,9 @@ const (
 	APIURL           = BaseURL + "api"
 	DefaultUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36"
 	// errors
-	ErrMissingPathToFile = "file path is required"
+	ErrMissingPathToFile = "file path or file reader is required"
 	ErrMissingFileID     = "file id is required"
+	ErrMissingFilename   = "if you use ReadCloser you need to specify the filename"
 )
 
 type ClientOptions struct {
@@ -83,7 +85,7 @@ func New(opt *ClientOptions, c *Client) *PixelDrainClient {
 // UploadPOST POST /api/file
 // curl -X POST -i -H "Authorization: Basic <TOKEN>" -F "file=@cat.jpg" https://pixeldrain.com/api/file
 func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error) {
-	if r.PathToFile == "" {
+	if r.PathToFile == "" && r.File == nil {
 		return nil, errors.New(ErrMissingPathToFile)
 	}
 
@@ -91,15 +93,24 @@ func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error
 		r.URL = fmt.Sprint(APIURL + "/file")
 	}
 
-	file, err := os.Open(r.PathToFile)
-	if err != nil {
-		return nil, err
-	}
+	reqFileUpload := req.FileUpload{}
+	if r.File != nil {
+		if r.FileName == "" {
+			return nil, errors.New(ErrMissingFilename)
+		}
 
-	reqFileUpload := req.FileUpload{
-		FileName:  r.GetFileName(),
-		FieldName: "file",
-		File:      file,
+		reqFileUpload.FileName = r.GetFileName()
+		reqFileUpload.FieldName = "file"
+		reqFileUpload.File = r.File
+	} else {
+		file, err := os.Open(r.PathToFile)
+		if err != nil {
+			return nil, err
+		}
+
+		reqFileUpload.FileName = r.GetFileName()
+		reqFileUpload.FieldName = "file"
+		reqFileUpload.File = file
 	}
 
 	reqParams := req.Param{
@@ -132,17 +143,27 @@ func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error
 // UploadPUT PUT /api/file/{name}
 // curl -X PUT -i -H "Authorization: Basic <TOKEN>" --upload-file cat.jpg https://pixeldrain.com/api/file/test_cat.jpg
 func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error) {
-	if r.PathToFile == "" {
+	if r.PathToFile == "" && r.File == nil {
 		return nil, errors.New(ErrMissingPathToFile)
+	}
+
+	if r.File == nil && r.FileName == "" {
+		return nil, errors.New(ErrMissingFilename)
 	}
 
 	if r.URL == "" {
 		r.URL = fmt.Sprintf(APIURL+"/file/%s", r.GetFileName())
 	}
 
-	file, err := os.Open(r.PathToFile)
-	if err != nil {
-		return nil, err
+	var file io.ReadCloser
+	var err error
+	if r.File != nil {
+		file = r.File
+	} else {
+		file, err = os.Open(r.PathToFile)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// we dont send this paramter due a bug of pixeldrain side
