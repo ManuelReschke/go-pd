@@ -1,6 +1,9 @@
 package pd
 
-import "path/filepath"
+import (
+	"io"
+	"path/filepath"
+)
 
 // Auth hold the auth information
 type Auth struct {
@@ -19,6 +22,7 @@ func (a *Auth) IsAuthAvailable() bool {
 
 // RequestUpload container for the upload information
 type RequestUpload struct {
+	File       io.ReadCloser
 	PathToFile string // path to the file "/home/user/cat.jpg"
 	FileName   string // just the filename "test.jpg"
 	Anonymous  bool   // if the upload is anonymous or with auth
@@ -29,8 +33,11 @@ type RequestUpload struct {
 // GetFileName return the filename from the path if no specific filename in the params
 func (r *RequestUpload) GetFileName() string {
 	if r.FileName == "" {
-		r.FileName = filepath.Base(r.PathToFile)
+		if r.PathToFile != "" {
+			r.FileName = filepath.Base(r.PathToFile)
+		}
 	}
+
 	return r.FileName
 }
 
