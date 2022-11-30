@@ -95,6 +95,12 @@ type RequestGetList struct {
 	URL  string
 }
 
+// RequestGetUser ...
+type RequestGetUser struct {
+	Auth Auth
+	URL  string
+}
+
 // RequestGetUserFiles ...
 type RequestGetUserFiles struct {
 	Auth Auth

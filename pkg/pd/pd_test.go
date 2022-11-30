@@ -433,6 +433,52 @@ func TestPD_GetList_Integration(t *testing.T) {
 	assert.Equal(t, 37621, rsp.Files[0].Size)
 }
 
+// TestPD_GetUser is a unit test for the GET "/user" method
+func TestPD_GetUser(t *testing.T) {
+	server := pd.MockFileUploadServer()
+	defer server.Close()
+	testURL := server.URL + "/user"
+
+	req := &pd.RequestGetUser{
+		URL: testURL,
+	}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.GetUser(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "TestTest", rsp.Username)
+	assert.Equal(t, "Free", rsp.Subscription.Name)
+}
+
+// TestPD_GetUser_Integration run a real integration test against the service
+func TestPD_GetUser_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip(SkipIntegrationTest)
+	}
+
+	req := &pd.RequestGetUser{}
+
+	req.Auth = setAuthFromEnv()
+
+	c := pd.New(nil, nil)
+	rsp, err := c.GetUser(req)
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, 200, rsp.StatusCode)
+	assert.Equal(t, true, rsp.Success)
+	assert.Equal(t, "ManuelReschke", rsp.Username)
+	assert.Equal(t, "Free", rsp.Subscription.Name)
+}
+
 // TestPD_GetUserFiles is a unit test for the GET "/user/files" method
 func TestPD_GetUserFiles(t *testing.T) {
 	server := pd.MockFileUploadServer()
