@@ -458,6 +458,42 @@ func (pd *PixelDrainClient) GetList(r *RequestGetList) (*ResponseGetList, error)
 	return rspStruct, nil
 }
 
+// GetUser GET /api/user
+func (pd *PixelDrainClient) GetUser(r *RequestGetUser) (*ResponseGetUser, error) {
+	if r.URL == "" {
+		r.URL = APIURL + "/user"
+	}
+
+	// pixeldrain want an empty username and the APIKey as password
+	if r.Auth.IsAuthAvailable() {
+		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+	}
+
+	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header)
+	if pd.Debug {
+		log.Println(rsp.Dump())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	rspStruct := &ResponseGetUser{}
+	err = rsp.ToJSON(rspStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	status := false
+	if rsp.Response().StatusCode == http.StatusOK {
+		status = true
+	}
+
+	rspStruct.Success = status
+	rspStruct.StatusCode = rsp.Response().StatusCode
+
+	return rspStruct, nil
+}
+
 // GetUserFiles GET /api/user/files
 func (pd *PixelDrainClient) GetUserFiles(r *RequestGetUserFiles) (*ResponseGetUserFiles, error) {
 	if r.URL == "" {

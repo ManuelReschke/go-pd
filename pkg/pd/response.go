@@ -85,6 +85,35 @@ type ResponseGetList struct {
 	ResponseDefault
 }
 
+type ResponseGetUser struct {
+	Username            string              `json:"username"`
+	Email               string              `json:"email"`
+	Subscription        GetUserSubscription `json:"subscription"`
+	StorageSpaceUsed    int                 `json:"storage_space_used"`
+	IsAdmin             bool                `json:"is_admin"`
+	BalanceMicroEur     int                 `json:"balance_micro_eur"`
+	HotlinkingEnabled   bool                `json:"hotlinking_enabled"`
+	MonthlyTransferCap  int                 `json:"monthly_transfer_cap"`
+	MonthlyTransferUsed int                 `json:"monthly_transfer_used"`
+	FileViewerBranding  interface{}         `json:"file_viewer_branding"`
+	FileEmbedDomains    string              `json:"file_embed_domains"`
+	SkipFileViewer      bool                `json:"skip_file_viewer"`
+	ResponseDefault
+}
+
+type GetUserSubscription struct {
+	ID                  string `json:"id"`
+	Name                string `json:"name"`
+	Type                string `json:"type"`
+	FileSizeLimit       int64  `json:"file_size_limit"`
+	FileExpiryDays      int    `json:"file_expiry_days"`
+	StorageSpace        int    `json:"storage_space"`
+	PricePerTbStorage   int    `json:"price_per_tb_storage"`
+	PricePerTbBandwidth int    `json:"price_per_tb_bandwidth"`
+	MonthlyTransferCap  int    `json:"monthly_transfer_cap"`
+	FileViewerBranding  bool   `json:"file_viewer_branding"`
+}
+
 type FileGetUser struct {
 	ID                  string    `json:"id"`
 	Name                string    `json:"name"`

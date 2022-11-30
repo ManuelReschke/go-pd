@@ -209,10 +209,11 @@ func main() {
 | [x] POST - /list     | CreateList(r *RequestCreateList) (*ResponseCreateList, error)  |
 | [x] GET - /list/{id} | GetList(r *RequestGetList) (*ResponseGetList, error)  |
 ### User Methods
-| PixelDrain Call        |  Package Func |
-|------------------------|---|
-| [x] POST - /user/files | GetUserFiles(r *RequestGetUserFiles) (*ResponseGetUserFiles, error)  |
-| [x] GET - /user/lists  | GetUserLists(r *RequestGetUserLists) (*ResponseGetUserLists, error)  |
+| PixelDrain Call  |  Package Func |
+|------------------|---|
+| [x] POST - /user | GetUser(r *RequestGetUser) (*ResponseGetUser, error)  |
+| [x] POST - /user/files | GetUserFiles(r *RequestGetUserFiles) (*ResponseGetUserFiles, error) |
+| [x] GET - /user/lists | GetUserLists(r *RequestGetUserLists) (*ResponseGetUserLists, error) |
 
 ## Package CLI commands
 

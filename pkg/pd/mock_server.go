@@ -210,6 +210,40 @@ func MockFileUploadServer() *httptest.Server {
 			}
 
 			// ##########################################
+			// GET /user
+			if r.URL.EscapedPath() == "/user" {
+				_ = r.ParseForm()
+
+				w.WriteHeader(http.StatusOK)
+				str := `{
+				   "username":"TestTest",
+				   "email":"test@test.de",
+				   "subscription":{
+					  "id":"",
+					  "name":"Free",
+					  "type":"",
+					  "file_size_limit":20000000000,
+					  "file_expiry_days":60,
+					  "storage_space":-1,
+					  "price_per_tb_storage":0,
+					  "price_per_tb_bandwidth":0,
+					  "monthly_transfer_cap":0,
+					  "file_viewer_branding":false
+				   },
+				   "storage_space_used":18834,
+				   "is_admin":false,
+				   "balance_micro_eur":0,
+				   "hotlinking_enabled":true,
+				   "monthly_transfer_cap":0,
+				   "monthly_transfer_used":0,
+				   "file_viewer_branding":null,
+				   "file_embed_domains":"",
+				   "skip_file_viewer":false
+				}`
+				_, _ = w.Write([]byte(str))
+			}
+
+			// ##########################################
 			// GET /user/lists
 			if r.URL.EscapedPath() == "/user/lists" {
 				_ = r.ParseForm()
