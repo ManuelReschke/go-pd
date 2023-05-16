@@ -191,7 +191,7 @@ func main() {
   - [x] implement GET - /user/lists
 - [x] create CLI tool for uploading to pixeldrain.com
 - [ ] refactor the hole shit and use nice to have patterns (like Option Pattern)
-- [ ] update imroc/req to the latest version
+- [ ] update imroc/req to the latest version (check if memory leak exist)
 
 ## PixelDrain methods covered by this package
 
