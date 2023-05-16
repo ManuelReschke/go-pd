@@ -1,11 +1,11 @@
 module github.com/ManuelReschke/go-pd
 
-go 1.18
+go 1.20
 
 require (
 	github.com/imroc/req v0.3.2
 	github.com/joho/godotenv v1.4.0
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.1
 )
 

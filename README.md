@@ -186,11 +186,12 @@ func main() {
   - [x] implement DELETE - /file/{id}
   - [x] implement POST - /list
   - [X] implement GET - /list/{id}
+  - [x] implement GET - /user
   - [x] implement GET - /user/files
   - [x] implement GET - /user/lists
 - [x] create CLI tool for uploading to pixeldrain.com
 - [ ] refactor the hole shit and use nice to have patterns (like Option Pattern)
-- [ ] update imroc/req to the latest version
+- [ ] update imroc/req to the latest version (check if memory leak exist)
 
 ## PixelDrain methods covered by this package
 
@@ -209,11 +210,11 @@ func main() {
 | [x] POST - /list     | CreateList(r *RequestCreateList) (*ResponseCreateList, error)  |
 | [x] GET - /list/{id} | GetList(r *RequestGetList) (*ResponseGetList, error)  |
 ### User Methods
-| PixelDrain Call  |  Package Func |
-|------------------|---|
-| [x] POST - /user | GetUser(r *RequestGetUser) (*ResponseGetUser, error)  |
+| PixelDrain Call        |  Package Func |
+|------------------------|---|
+| [x] GET - /user        | GetUser(r *RequestGetUser) (*ResponseGetUser, error)  |
 | [x] POST - /user/files | GetUserFiles(r *RequestGetUserFiles) (*ResponseGetUserFiles, error) |
-| [x] GET - /user/lists | GetUserLists(r *RequestGetUserLists) (*ResponseGetUserLists, error) |
+| [x] GET - /user/lists  | GetUserLists(r *RequestGetUserLists) (*ResponseGetUserLists, error) |
 
 ## Package CLI commands
 
