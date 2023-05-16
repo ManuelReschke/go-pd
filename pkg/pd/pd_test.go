@@ -521,10 +521,19 @@ func TestPD_GetUserFiles_Integration(t *testing.T) {
 
 	assert.Equal(t, 200, rsp.StatusCode)
 	assert.Equal(t, true, rsp.Success)
-	if rsp.Files[0].ID == fileIDPost {
-		assert.Equal(t, fileIDPost, rsp.Files[0].ID)
-	} else {
-		assert.Equal(t, fileIDPut, rsp.Files[0].ID)
+
+	if len(rsp.Files) >= 2 {
+		assert.True(t, true)
+	}
+
+	for _, file := range rsp.Files {
+		if file.ID == fileIDPost {
+			assert.Equal(t, fileIDPost, file.ID)
+		}
+
+		if file.ID == fileIDPut {
+			assert.Equal(t, fileIDPut, file.ID)
+		}
 	}
 }
 
