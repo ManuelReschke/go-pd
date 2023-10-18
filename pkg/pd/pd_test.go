@@ -2,11 +2,12 @@ package pd_test
 
 import (
 	"fmt"
+	"os"
+	"testing"
+
 	"github.com/ManuelReschke/go-pd/pkg/pd"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
 )
 
 const SkipIntegrationTest = "skipping integration test"
@@ -235,7 +236,7 @@ func TestPD_GetFileInfo(t *testing.T) {
 	assert.Equal(t, 200, rsp.StatusCode)
 	assert.Equal(t, true, rsp.Success)
 	assert.Equal(t, "K1dA8U5W", rsp.ID)
-	assert.Equal(t, 37621, rsp.Size)
+	assert.Equal(t, int64(37621), rsp.Size)
 	assert.Equal(t, "1af93d68009bdfd52e1da100a019a30b5fe083d2d1130919225ad0fd3d1fed0b", rsp.HashSha256)
 }
 
@@ -260,7 +261,7 @@ func TestPD_GetFileInfo_Integration(t *testing.T) {
 	assert.Equal(t, 200, rsp.StatusCode)
 	assert.Equal(t, true, rsp.Success)
 	assert.Equal(t, fileIDPost, rsp.ID)
-	assert.Equal(t, 37621, rsp.Size)
+	assert.Equal(t, int64(37621), rsp.Size)
 	assert.Equal(t, "1af93d68009bdfd52e1da100a019a30b5fe083d2d1130919225ad0fd3d1fed0b", rsp.HashSha256)
 }
 
@@ -405,7 +406,7 @@ func TestPD_GetList(t *testing.T) {
 	assert.Equal(t, true, rsp.Success)
 	assert.NotEmpty(t, rsp.ID)
 	assert.Equal(t, "Rust in Peace", rsp.Title)
-	assert.Equal(t, 123456, rsp.Files[0].Size)
+	assert.Equal(t, int64(123456), rsp.Files[0].Size)
 }
 
 // TestPD_GetList_Integration run a real integration test against the service
@@ -430,7 +431,7 @@ func TestPD_GetList_Integration(t *testing.T) {
 	assert.Equal(t, true, rsp.Success)
 	assert.NotEmpty(t, rsp.ID)
 	assert.Equal(t, "Test List", rsp.Title)
-	assert.Equal(t, 37621, rsp.Files[0].Size)
+	assert.Equal(t, int64(37621), rsp.Files[0].Size)
 }
 
 // TestPD_GetUser is a unit test for the GET "/user" method
