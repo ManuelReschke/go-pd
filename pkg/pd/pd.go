@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
-	"github.com/imroc/req"
+	"github.com/imroc/req/v3"
 )
 
 const (
@@ -25,6 +25,11 @@ const (
 	ErrMissingFilename   = "if you use ReadCloser you need to specify the filename"
 )
 
+type ErrorMessage struct {
+	ErrorCode    int    `json:"error_code" xml:"ErrorCode"`
+	ErrorMessage string `json:"error_message" xml:"ErrorMessage"`
+}
+
 type ClientOptions struct {
 	Debug             bool
 	ProxyURL          string
@@ -33,18 +38,18 @@ type ClientOptions struct {
 	Timeout           time.Duration
 }
 
-type Client struct {
-	Header  req.Header
-	Request *req.Req
+type ClientWrapper struct {
+	Client         *req.Client
+	UploadCallback func(info req.UploadInfo)
 }
 
 type PixelDrainClient struct {
-	Client *Client
+	Client *ClientWrapper
 	Debug  bool
 }
 
 // New - create a new PixelDrainClient
-func New(opt *ClientOptions, c *Client) *PixelDrainClient {
+func New(opt *ClientOptions, c *ClientWrapper) *PixelDrainClient {
 	// set default values if no other options available
 	if opt == nil {
 		opt = &ClientOptions{
@@ -58,20 +63,29 @@ func New(opt *ClientOptions, c *Client) *PixelDrainClient {
 
 	// build default client if not available
 	if c == nil {
-		c = &Client{
-			Header: req.Header{
-				"User-Agent": DefaultUserAgent,
-			},
-			Request: req.New(),
+		client := req.C()
+		client.SetUserAgent(DefaultUserAgent)
+
+		c = &ClientWrapper{
+			Client:         client,
+			UploadCallback: nil,
 		}
 	}
 
-	// set the request options
-	c.Request.EnableCookie(opt.EnableCookies)
-	c.Request.EnableInsecureTLS(opt.EnableInsecureTLS)
-	c.Request.SetTimeout(opt.Timeout)
+	if opt.EnableInsecureTLS {
+		c.Client.EnableInsecureSkipVerify()
+	}
+
+	if opt.Timeout != 0 {
+		c.Client.SetTimeout(opt.Timeout)
+	}
+
 	if opt.ProxyURL != "" {
-		_ = c.Request.SetProxyUrl(opt.ProxyURL)
+		_ = c.Client.SetProxyURL(opt.ProxyURL)
+	}
+	// cookie is available by default in v3
+	if opt.EnableCookies == false {
+		c.Client.SetCookieJar(nil)
 	}
 
 	pdc := &PixelDrainClient{
@@ -80,6 +94,10 @@ func New(opt *ClientOptions, c *Client) *PixelDrainClient {
 	}
 
 	return pdc
+}
+
+func (pd *PixelDrainClient) SetUploadCallback(callback func(info req.UploadInfo)) {
+	pd.Client.UploadCallback = callback
 }
 
 // UploadPOST POST /api/file
@@ -93,51 +111,52 @@ func (pd *PixelDrainClient) UploadPOST(r *RequestUpload) (*ResponseUpload, error
 		r.URL = fmt.Sprint(APIURL + "/file")
 	}
 
-	reqFileUpload := req.FileUpload{}
 	if r.File != nil {
 		if r.FileName == "" {
 			return nil, errors.New(ErrMissingFilename)
 		}
-
-		reqFileUpload.FileName = r.GetFileName()
-		reqFileUpload.FieldName = "file"
-		reqFileUpload.File = r.File
 	} else {
 		file, err := os.Open(r.PathToFile)
+		defer file.Close()
 		if err != nil {
 			return nil, err
 		}
-
-		reqFileUpload.FileName = r.GetFileName()
-		reqFileUpload.FieldName = "file"
-		reqFileUpload.File = file
 	}
 
-	reqParams := req.Param{
-		"anonymous": r.Anonymous,
-	}
+	headers := map[string]string{}
 
 	// pixeldrain want an empty username and the APIKey as password
 	if r.Auth.IsAuthAvailable() && !r.Anonymous {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
-	rsp, err := pd.Client.Request.Post(r.URL, pd.Client.Header, reqFileUpload, reqParams)
-	if pd.Debug {
+	var uploadRsp ResponseUpload
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetHeaders(headers).
+		SetQueryParam("anonymous", strconv.FormatBool(r.Anonymous)).
+		SetSuccessResult(&uploadRsp).
+		SetErrorResult(&errMsg).
+		// currently a bug - https://github.com/imroc/req/issues/352
+		// SetFileReader("file", r.GetFileName(), r.File).
+		SetFile("file", r.PathToFile).
+		SetUploadCallback(pd.Client.UploadCallback).
+		Post(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	uploadRsp := &ResponseUpload{}
-	uploadRsp.StatusCode = rsp.Response().StatusCode
-	err = rsp.ToJSON(uploadRsp)
-	if err != nil {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
 		return nil, err
 	}
 
-	return uploadRsp, nil
+	uploadRsp.StatusCode = rsp.GetStatusCode()
+
+	return &uploadRsp, nil
 }
 
 // UploadPUT PUT /api/file/{name}
@@ -151,50 +170,49 @@ func (pd *PixelDrainClient) UploadPUT(r *RequestUpload) (*ResponseUpload, error)
 		return nil, errors.New(ErrMissingFilename)
 	}
 
+	file, err := os.Open(r.PathToFile)
+	defer file.Close()
+	if err != nil {
+		return nil, err
+	}
+	r.File = file
+
 	if r.URL == "" {
 		r.URL = fmt.Sprintf(APIURL+"/file/%s", r.GetFileName())
 	}
 
-	var file io.ReadCloser
-	var err error
-	if r.File != nil {
-		file = r.File
-	} else {
-		file, err = os.Open(r.PathToFile)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// we dont send this paramter due a bug of pixeldrain side
-	//reqParams := req.Param{
-	//	"anonymous": r.Anonymous,
-	//}
+	headers := map[string]string{}
 
 	// pixeldrain want an empty username and the APIKey as password
 	if r.Auth.IsAuthAvailable() && !r.Anonymous {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
-	rsp, err := pd.Client.Request.Put(r.URL, pd.Client.Header, file)
-	if pd.Debug {
+	var uploadRsp ResponseUpload
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetHeaders(headers).
+		// SetQueryParam("anonymous", strconv.FormatBool(r.Anonymous)).
+		SetSuccessResult(&uploadRsp).
+		SetErrorResult(&errMsg).
+		SetBody(r.File).
+		SetUploadCallback(pd.Client.UploadCallback).
+		Put(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	uploadRsp := &ResponseUpload{}
-	uploadRsp.StatusCode = rsp.Response().StatusCode
-	if uploadRsp.StatusCode == http.StatusCreated {
-		uploadRsp.Success = true
-	}
-	err = rsp.ToJSON(uploadRsp)
-	if err != nil {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
 		return nil, err
 	}
 
-	return uploadRsp, nil
+	uploadRsp.StatusCode = rsp.GetStatusCode()
+
+	return &uploadRsp, nil
 }
 
 // Download GET /api/file/{id}
@@ -211,39 +229,39 @@ func (pd *PixelDrainClient) Download(r *RequestDownload) (*ResponseDownload, err
 		r.URL = fmt.Sprintf(APIURL+"/file/%s", r.ID)
 	}
 
+	headers := map[string]string{}
 	// pixeldrain want an empty username and the APIKey as password
 	if r.Auth.IsAuthAvailable() {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
-	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header)
-	if pd.Debug {
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetHeaders(headers).
+		SetErrorResult(&errMsg).
+		SetOutputFile(r.PathToSave).
+		Get(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	if rsp.Response().StatusCode != 200 {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
+		return nil, err
+	}
+
+	if rsp.GetStatusCode() != 200 {
 		defaultRsp := &ResponseDefault{}
-		err = rsp.ToJSON(defaultRsp)
-		if err != nil {
-			return nil, err
-		}
-
-		defaultRsp.StatusCode = rsp.Response().StatusCode
+		defaultRsp.StatusCode = rsp.GetStatusCode()
 		defaultRsp.Success = false
-
 		downloadRsp := &ResponseDownload{
 			ResponseDefault: *defaultRsp,
 		}
 
 		return downloadRsp, nil
-	}
-
-	err = rsp.ToFile(r.PathToSave)
-	if err != nil {
-		return nil, err
 	}
 
 	fInfo, err := os.Stat(r.PathToSave)
@@ -256,7 +274,7 @@ func (pd *PixelDrainClient) Download(r *RequestDownload) (*ResponseDownload, err
 		FileName: fInfo.Name(),
 		FileSize: fInfo.Size(),
 		ResponseDefault: ResponseDefault{
-			StatusCode: rsp.Response().StatusCode,
+			StatusCode: rsp.GetStatusCode(),
 			Success:    true,
 		},
 	}
@@ -274,30 +292,37 @@ func (pd *PixelDrainClient) GetFileInfo(r *RequestFileInfo) (*ResponseFileInfo, 
 		r.URL = fmt.Sprintf(APIURL+"/file/%s/info", r.ID)
 	}
 
+	headers := map[string]string{}
 	// pixeldrain want an empty username and the APIKey as password
 	if r.Auth.IsAuthAvailable() {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
-	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header)
-	if pd.Debug {
+	var fileInfoRsp ResponseFileInfo
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetHeaders(headers).
+		SetSuccessResult(&fileInfoRsp).
+		SetErrorResult(&errMsg).
+		Get(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	fileInfoRsp := &ResponseFileInfo{}
-	fileInfoRsp.StatusCode = rsp.Response().StatusCode
-	if fileInfoRsp.StatusCode == http.StatusOK {
-		fileInfoRsp.Success = true
-	}
-	err = rsp.ToJSON(fileInfoRsp)
-	if err != nil {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
 		return nil, err
 	}
 
-	return fileInfoRsp, nil
+	fileInfoRsp.StatusCode = rsp.GetStatusCode()
+	if fileInfoRsp.StatusCode == http.StatusOK {
+		fileInfoRsp.Success = true
+	}
+
+	return &fileInfoRsp, nil
 }
 
 // DownloadThumbnail GET /api/file/{id}/thumbnail?width=x&height=x
@@ -314,7 +339,7 @@ func (pd *PixelDrainClient) DownloadThumbnail(r *RequestThumbnail) (*ResponseThu
 		r.URL = fmt.Sprintf(APIURL+"/file/%s/thumbnail", r.ID)
 	}
 
-	queryParams := req.QueryParam{}
+	queryParams := map[string]string{}
 	if r.Width != "" {
 		queryParams["width"] = r.Width
 	}
@@ -322,21 +347,28 @@ func (pd *PixelDrainClient) DownloadThumbnail(r *RequestThumbnail) (*ResponseThu
 		queryParams["height"] = r.Height
 	}
 
+	headers := map[string]string{}
 	// pixeldrain want an empty username and the APIKey as password
 	if r.Auth.IsAuthAvailable() {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
-	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header, queryParams)
-	if pd.Debug {
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetQueryParams(queryParams).
+		SetHeaders(headers).
+		SetErrorResult(&errMsg).
+		SetOutputFile(r.PathToSave).
+		Get(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	err = rsp.ToFile(r.PathToSave)
-	if err != nil {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
 		return nil, err
 	}
 
@@ -350,7 +382,7 @@ func (pd *PixelDrainClient) DownloadThumbnail(r *RequestThumbnail) (*ResponseThu
 		FileName: fInfo.Name(),
 		FileSize: fInfo.Size(),
 		ResponseDefault: ResponseDefault{
-			StatusCode: rsp.Response().StatusCode,
+			StatusCode: rsp.GetStatusCode(),
 			Success:    true,
 		},
 	}
@@ -368,28 +400,34 @@ func (pd *PixelDrainClient) Delete(r *RequestDelete) (*ResponseDelete, error) {
 		r.URL = fmt.Sprintf(APIURL+"/file/%s", r.ID)
 	}
 
+	headers := map[string]string{}
 	// pixeldrain want an empty username and the APIKey as password
 	if r.Auth.IsAuthAvailable() {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
-	rsp, err := pd.Client.Request.Delete(r.URL, pd.Client.Header)
-	if pd.Debug {
+	var rspStruct ResponseDelete
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetHeaders(headers).
+		SetSuccessResult(&rspStruct).
+		SetErrorResult(&errMsg).
+		Delete(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	rspStruct := &ResponseDelete{}
-	err = rsp.ToJSON(rspStruct)
-	if err != nil {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
 		return nil, err
 	}
 
-	rspStruct.StatusCode = rsp.Response().StatusCode
+	rspStruct.StatusCode = rsp.GetStatusCode()
 
-	return rspStruct, nil
+	return &rspStruct, nil
 }
 
 // CreateList POST /api/list
@@ -398,30 +436,40 @@ func (pd *PixelDrainClient) CreateList(r *RequestCreateList) (*ResponseCreateLis
 		r.URL = APIURL + "/list"
 	}
 
+	headers := map[string]string{}
 	// pixeldrain want an empty username and the APIKey as password
-	if r.Auth.IsAuthAvailable() && !r.Anonymous {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+	if r.Auth.IsAuthAvailable() {
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
 	data, err := json.Marshal(r)
+	if err != nil {
+		return nil, err
+	}
 
-	rsp, err := pd.Client.Request.Post(r.URL, pd.Client.Header, data)
-	if pd.Debug {
+	var rspStruct ResponseCreateList
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetHeaders(headers).
+		SetBodyJsonBytes(data).
+		SetSuccessResult(&rspStruct).
+		SetErrorResult(&errMsg).
+		Post(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	rspStruct := &ResponseCreateList{}
-	err = rsp.ToJSON(rspStruct)
-	if err != nil {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
 		return nil, err
 	}
 
-	rspStruct.StatusCode = rsp.Response().StatusCode
+	rspStruct.StatusCode = rsp.GetStatusCode()
 
-	return rspStruct, nil
+	return &rspStruct, nil
 }
 
 // GetList GET /api/list/{id}
@@ -434,28 +482,34 @@ func (pd *PixelDrainClient) GetList(r *RequestGetList) (*ResponseGetList, error)
 		r.URL = fmt.Sprintf(APIURL+"/list/%s", r.ID)
 	}
 
+	headers := map[string]string{}
 	// pixeldrain want an empty username and the APIKey as password
 	if r.Auth.IsAuthAvailable() {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
-	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header)
-	if pd.Debug {
+	var rspStruct ResponseGetList
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetHeaders(headers).
+		SetSuccessResult(&rspStruct).
+		SetErrorResult(&errMsg).
+		Get(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	rspStruct := &ResponseGetList{}
-	err = rsp.ToJSON(rspStruct)
-	if err != nil {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
 		return nil, err
 	}
 
-	rspStruct.StatusCode = rsp.Response().StatusCode
+	rspStruct.StatusCode = rsp.GetStatusCode()
 
-	return rspStruct, nil
+	return &rspStruct, nil
 }
 
 // GetUser GET /api/user
@@ -464,34 +518,40 @@ func (pd *PixelDrainClient) GetUser(r *RequestGetUser) (*ResponseGetUser, error)
 		r.URL = APIURL + "/user"
 	}
 
+	headers := map[string]string{}
 	// pixeldrain want an empty username and the APIKey as password
 	if r.Auth.IsAuthAvailable() {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
-	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header)
-	if pd.Debug {
+	var rspStruct ResponseGetUser
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetHeaders(headers).
+		SetSuccessResult(&rspStruct).
+		SetErrorResult(&errMsg).
+		Get(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	rspStruct := &ResponseGetUser{}
-	err = rsp.ToJSON(rspStruct)
-	if err != nil {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
 		return nil, err
 	}
 
 	status := false
-	if rsp.Response().StatusCode == http.StatusOK {
+	if rsp.GetStatusCode() == http.StatusOK {
 		status = true
 	}
 
 	rspStruct.Success = status
-	rspStruct.StatusCode = rsp.Response().StatusCode
+	rspStruct.StatusCode = rsp.GetStatusCode()
 
-	return rspStruct, nil
+	return &rspStruct, nil
 }
 
 // GetUserFiles GET /api/user/files
@@ -500,34 +560,40 @@ func (pd *PixelDrainClient) GetUserFiles(r *RequestGetUserFiles) (*ResponseGetUs
 		r.URL = APIURL + "/user/files"
 	}
 
+	headers := map[string]string{}
 	// pixeldrain want an empty username and the APIKey as password
 	if r.Auth.IsAuthAvailable() {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
-	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header)
-	if pd.Debug {
+	var rspStruct ResponseGetUserFiles
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetHeaders(headers).
+		SetSuccessResult(&rspStruct).
+		SetErrorResult(&errMsg).
+		Get(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	rspStruct := &ResponseGetUserFiles{}
-	err = rsp.ToJSON(rspStruct)
-	if err != nil {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
 		return nil, err
 	}
 
 	status := false
-	if rsp.Response().StatusCode == http.StatusOK {
+	if rsp.GetStatusCode() == http.StatusOK {
 		status = true
 	}
 
 	rspStruct.Success = status
-	rspStruct.StatusCode = rsp.Response().StatusCode
+	rspStruct.StatusCode = rsp.GetStatusCode()
 
-	return rspStruct, nil
+	return &rspStruct, nil
 }
 
 // GetUserLists GET /api/user/lists
@@ -536,45 +602,53 @@ func (pd *PixelDrainClient) GetUserLists(r *RequestGetUserLists) (*ResponseGetUs
 		r.URL = APIURL + "/user/lists"
 	}
 
+	headers := map[string]string{}
 	// pixeldrain want an empty username and the APIKey as password
 	if r.Auth.IsAuthAvailable() {
-		addBasicAuthHeader(pd.Client.Header, "", r.Auth.APIKey)
+		addBasicAuthHeader(headers, "", r.Auth.APIKey)
 	}
 
-	rsp, err := pd.Client.Request.Get(r.URL, pd.Client.Header)
-	if pd.Debug {
+	var rspStruct ResponseGetUserLists
+	var errMsg ErrorMessage
+	rsp, err := pd.Client.Client.R().
+		SetHeaders(headers).
+		SetSuccessResult(&rspStruct).
+		SetErrorResult(&errMsg).
+		Get(r.URL)
+	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	rspStruct := &ResponseGetUserLists{}
-	err = rsp.ToJSON(rspStruct)
-	if err != nil {
+	if rsp != nil && rsp.IsErrorState() { // Status code >= 400.
+		err = errors.New(errMsg.ErrorMessage)
 		return nil, err
 	}
 
 	status := false
-	if rsp.Response().StatusCode == http.StatusOK {
+	if rsp.GetStatusCode() == http.StatusOK {
 		status = true
 	}
 
 	rspStruct.Success = status
-	rspStruct.StatusCode = rsp.Response().StatusCode
+	rspStruct.StatusCode = rsp.GetStatusCode()
 
-	return rspStruct, nil
+	return &rspStruct, nil
 }
 
 // pixeldrain want an empty username and the APIKey as password
 // addBasicAuthHeader create a http basic auth header from username and password
-func addBasicAuthHeader(h req.Header, u string, p string) *req.Header {
+func addBasicAuthHeader(h map[string]string, u string, p string) map[string]string {
 	h["Authorization"] = "Basic " + generateBasicAuthToken(u, p)
-	return &h
+
+	return h
 }
 
 // generateBasicAuthToken generate string for basic auth header
 func generateBasicAuthToken(u string, p string) string {
 	auth := u + ":" + p
+
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }

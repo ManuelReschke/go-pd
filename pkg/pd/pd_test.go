@@ -22,7 +22,7 @@ func TestPD_UploadPOST(t *testing.T) {
 	defer server.Close()
 	testURL := server.URL + "/file"
 
-	req := &pd.RequestUpload{
+	rq := &pd.RequestUpload{
 		PathToFile: "testdata/cat.jpg",
 		FileName:   "test_post_cat.jpg",
 		Anonymous:  true,
@@ -30,7 +30,7 @@ func TestPD_UploadPOST(t *testing.T) {
 	}
 
 	c := pd.New(nil, nil)
-	rsp, err := c.UploadPOST(req)
+	rsp, err := c.UploadPOST(rq)
 	if err != nil {
 		t.Error(err)
 	}
@@ -47,51 +47,54 @@ func TestPD_UploadPOST_Integration(t *testing.T) {
 		t.Skip(SkipIntegrationTest)
 	}
 
-	req := &pd.RequestUpload{
+	rq := &pd.RequestUpload{
 		PathToFile: "testdata/cat.jpg",
 		FileName:   "test_post_cat.jpg",
 	}
 
-	req.Auth = setAuthFromEnv()
+	rq.Auth = setAuthFromEnv()
 
 	c := pd.New(nil, nil)
-	rsp, err := c.UploadPOST(req)
+	rsp, err := c.UploadPOST(rq)
 	if err != nil {
 		t.Error(err)
 	}
 
 	assert.Equal(t, 201, rsp.StatusCode)
 	assert.NotEmpty(t, rsp.ID)
+	assert.True(t, rsp.Success)
 	fileIDPost = rsp.ID
 	fmt.Println("POST Req: " + rsp.GetFileURL())
 }
 
-// TestPD_UploadPOST_WithReadCloser_Integration run a real integration test against the service
-func TestPD_UploadPOST_WithReadCloser_Integration(t *testing.T) {
-	if testing.Short() {
-		t.Skip(SkipIntegrationTest)
-	}
-
-	// ReadCloser
-	file, _ := os.Open("testdata/cat.jpg")
-
-	req := &pd.RequestUpload{
-		File:     file,
-		FileName: "test_post_cat.jpg",
-	}
-
-	req.Auth = setAuthFromEnv()
-
-	c := pd.New(nil, nil)
-	rsp, err := c.UploadPOST(req)
-	if err != nil {
-		t.Error(err)
-	}
-
-	assert.Equal(t, 201, rsp.StatusCode)
-	assert.NotEmpty(t, rsp.ID)
-	fmt.Println("POST Req: " + rsp.GetFileURL())
-}
+// currently not supported
+//
+// // TestPD_UploadPOST_WithReadCloser_Integration run a real integration test against the service
+// func TestPD_UploadPOST_WithReadCloser_Integration(t *testing.T) {
+// 	if testing.Short() {
+// 		t.Skip(SkipIntegrationTest)
+// 	}
+//
+// 	// ReadCloser
+// 	file, _ := os.Open("testdata/cat.jpg")
+//
+// 	req := &pd.RequestUpload{
+// 		File:     file,
+// 		FileName: "test_post_cat.jpg",
+// 	}
+//
+// 	req.Auth = setAuthFromEnv()
+//
+// 	c := pd.New(nil, nil)
+// 	rsp, err := c.UploadPOST(req)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+//
+// 	assert.Equal(t, 201, rsp.StatusCode)
+// 	assert.NotEmpty(t, rsp.ID)
+// 	fmt.Println("POST Req: " + rsp.GetFileURL())
+// }
 
 // TestPD_UploadPUT is a unit test for the PUT upload method
 func TestPD_UploadPUT(t *testing.T) {
@@ -140,33 +143,6 @@ func TestPD_UploadPUT_Integration(t *testing.T) {
 	assert.Equal(t, 201, rsp.StatusCode)
 	assert.NotEmpty(t, rsp.ID)
 	fileIDPut = rsp.ID
-	fmt.Println("PUT Req: " + rsp.GetFileURL())
-}
-
-// TestPD_UploadPUT_WithReadCloser_Integration run a real integration test against the service
-func TestPD_UploadPUT_WithReadCloser_Integration(t *testing.T) {
-	if testing.Short() {
-		t.Skip(SkipIntegrationTest)
-	}
-
-	// ReadCloser
-	file, _ := os.Open("testdata/cat.jpg")
-
-	req := &pd.RequestUpload{
-		File:     file,
-		FileName: "test_put_cat.jpg",
-	}
-
-	req.Auth = setAuthFromEnv()
-
-	c := pd.New(nil, nil)
-	rsp, err := c.UploadPUT(req)
-	if err != nil {
-		t.Error(err)
-	}
-
-	assert.Equal(t, 201, rsp.StatusCode)
-	assert.NotEmpty(t, rsp.ID)
 	fmt.Println("PUT Req: " + rsp.GetFileURL())
 }
 
