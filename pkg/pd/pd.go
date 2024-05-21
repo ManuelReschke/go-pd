@@ -240,6 +240,8 @@ func (pd *PixelDrainClient) Download(r *RequestDownload) (*ResponseDownload, err
 		SetHeaders(headers).
 		SetErrorResult(&errMsg).
 		SetOutputFile(r.PathToSave).
+		SetRetryCount(5).
+		SetRetryFixedInterval(3 * time.Second).
 		Get(r.URL)
 	if pd.Debug && rsp != nil {
 		log.Println(rsp.Dump())
