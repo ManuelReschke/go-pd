@@ -3,11 +3,12 @@ package app
 import (
 	"errors"
 	"fmt"
-	"github.com/ManuelReschke/go-pd/pkg/pd"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/ManuelReschke/go-pd/pkg/pd"
+	"github.com/spf13/cobra"
 )
 
 func RunDownload(cmd *cobra.Command, args []string) error {
