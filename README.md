@@ -8,7 +8,7 @@
 
 ![Go-PD](logo.jpg)
 
-A free pixeldrain.com client written in go. We use the super power from [imroc/req](https://github.com/imroc/req) (v0.3.2) to build a robust and fast pixeldrain client and [cobra](https://github.com/spf13/cobra) for our CLI tool.
+A free pixeldrain.com client written in go. We use the super power from [imroc/req](https://github.com/imroc/req) (v3.43.x) to build a robust and fast pixeldrain client and [cobra](https://github.com/spf13/cobra) for our CLI tool.
 
 ![Go-PD](go-pd-upload-and-download.gif)
 
@@ -48,12 +48,16 @@ Go to the folder where you download the binary file and run the following comman
 ```
 
 **Upload to your account (-verbose):**
+The verbose option enable also the progress in % and the env check message.
 
 ```
  ./go-pd upload -k <your-api-key> -v my-cat.jpg my-cat2.jpg
  
  Output:
+ Using API Key from environment variable: PIXELDRAIN_API_KEY
+ "my-cat.jpg" uploaded 100.00%
  Successful! Anonymous upload: false | ID: xBxxxxxx | URL: https://pixeldrain.com/u/xBxxxxxx
+ "my-cat2.jpg" uploaded 100.00%
  Successful! Anonymous upload: false | ID: xAxxxxxx | URL: https://pixeldrain.com/u/xAxxxxxx
 ```
 
@@ -128,7 +132,7 @@ func main() {
 }
 ```
 
-## Example 2 - advanced way to upload a file to user account
+## Example 2 - advanced way - upload a file to user account with progress callback
 
 ```go
 package main
@@ -138,6 +142,7 @@ import (
 	"time"
 
 	"github.com/ManuelReschke/go-pd/pkg/pd"
+    "github.com/imroc/req/v3"
 )
 
 func main() {
@@ -160,6 +165,16 @@ func main() {
 	}
 
 	c := pd.New(opt, nil)
+	
+	// enable progress
+    c.SetUploadCallback(func(info req.UploadInfo) {
+      if info.FileSize > 0 {
+        fmt.Printf("%q uploaded %.2f%%\n", info.FileName, float64(info.UploadedSize)/float64(info.FileSize)*100.0)
+      } else {
+        fmt.Printf("%q uploaded 0%% (file size is zero)\n", info.FileName)
+      }
+    })
+	
 	rsp, err := c.UploadPOST(req)
 	if err != nil {
 		fmt.Println(err)
@@ -190,8 +205,8 @@ func main() {
   - [x] implement GET - /user/files
   - [x] implement GET - /user/lists
 - [x] create CLI tool for uploading to pixeldrain.com
+- [x] update imroc/req to the latest version
 - [ ] refactor the hole shit and use nice to have patterns (like Option Pattern)
-- [ ] update imroc/req to the latest version (check if memory leak exist)
 
 ## PixelDrain methods covered by this package
 
