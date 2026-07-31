@@ -2,3 +2,7 @@
 .vscode
 c.out
 coverage.html
+
+# Build / release artifacts (must not be tracked — goreleaser --clean deletes dist/)
+/dist/
+/bin/
